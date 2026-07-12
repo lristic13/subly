@@ -1,0 +1,662 @@
+[
+  {
+    "id": "netflix",
+    "name": "Netflix",
+    "domain": "netflix.com",
+    "brandColor": "#E50914",
+    "defaultPriceUsd": 11.89,
+    "defaultPriceEur": 9.99,
+    "category": "streaming",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "hbo-max",
+    "name": "Max",
+    "domain": "max.com",
+    "brandColor": "#002BE7",
+    "defaultPriceUsd": 11.89,
+    "defaultPriceEur": 9.99,
+    "category": "streaming",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "disney-plus",
+    "name": "Disney+",
+    "domain": "disneyplus.com",
+    "brandColor": "#113CCF",
+    "defaultPriceUsd": 16.69,
+    "defaultPriceEur": 13.99,
+    "category": "streaming",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "amazon-prime-video",
+    "name": "Amazon Prime Video",
+    "domain": "primevideo.com",
+    "brandColor": "#00A8E1",
+    "defaultPriceUsd": 14.99,
+    "defaultPriceEur": 12.59,
+    "category": "streaming",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "apple-tv-plus",
+    "name": "Apple TV+",
+    "domain": "tv.apple.com",
+    "brandColor": "#000000",
+    "defaultPriceUsd": 14.99,
+    "defaultPriceEur": 12.59,
+    "category": "streaming",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "paramount-plus",
+    "name": "Paramount+",
+    "domain": "paramountplus.com",
+    "brandColor": "#0064FF",
+    "defaultPriceUsd": 8.99,
+    "defaultPriceEur": 7.59,
+    "category": "streaming",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "crunchyroll",
+    "name": "Crunchyroll",
+    "domain": "crunchyroll.com",
+    "brandColor": "#F47521",
+    "defaultPriceUsd": 8.09,
+    "defaultPriceEur": 6.79,
+    "category": "streaming",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "discovery-plus",
+    "name": "Discovery+",
+    "domain": "discoveryplus.com",
+    "brandColor": "#0033A0",
+    "defaultPriceUsd": 9.99,
+    "defaultPriceEur": 8.39,
+    "category": "streaming",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "youtube-premium",
+    "name": "YouTube Premium",
+    "domain": "youtube.com",
+    "brandColor": "#FF0000",
+    "defaultPriceUsd": 8.29,
+    "defaultPriceEur": 6.99,
+    "category": "streaming",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "spotify",
+    "name": "Spotify",
+    "domain": "spotify.com",
+    "brandColor": "#1DB954",
+    "defaultPriceUsd": 7.09,
+    "defaultPriceEur": 5.99,
+    "category": "music",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "apple-music",
+    "name": "Apple Music",
+    "domain": "music.apple.com",
+    "brandColor": "#ff0436",
+    "defaultPriceUsd": 10.99,
+    "defaultPriceEur": 9.89,
+    "category": "music",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "youtube-music",
+    "name": "YouTube Music",
+    "domain": "music.youtube.com",
+    "brandColor": "#FF0000",
+    "defaultPriceUsd": 6.49,
+    "defaultPriceEur": 5.39,
+    "category": "music",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "tidal",
+    "name": "Tidal",
+    "domain": "tidal.com",
+    "brandColor": "#000000",
+    "defaultPriceUsd": 5.99,
+    "defaultPriceEur": 4.99,
+    "category": "music",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "deezer",
+    "name": "Deezer",
+    "domain": "deezer.com",
+    "brandColor": "#FEAA2D",
+    "defaultPriceUsd": 7.79,
+    "defaultPriceEur": 6.49,
+    "category": "music",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "amazon-music",
+    "name": "Amazon Music Unlimited",
+    "domain": "music.amazon.com",
+    "brandColor": "#25D1DA",
+    "defaultPriceUsd": 12.99,
+    "defaultPriceEur": 10.99,
+    "category": "music",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "xbox-game-pass",
+    "name": "Xbox Game Pass Ultimate",
+    "domain": "xbox.com",
+    "brandColor": "#107C10",
+    "defaultPriceUsd": 9.99,
+    "defaultPriceEur": 8.39,
+    "category": "gaming",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "playstation-plus",
+    "name": "PlayStation Plus",
+    "domain": "playstation.com",
+    "brandColor": "#003087",
+    "defaultPriceUsd": 9.99,
+    "defaultPriceEur": 8.39,
+    "category": "gaming",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "nintendo-switch-online",
+    "name": "Nintendo Switch Online",
+    "domain": "nintendo.com",
+    "brandColor": "#E60012",
+    "defaultPriceUsd": 19.99,
+    "defaultPriceEur": 16.79,
+    "category": "gaming",
+    "defaultCycle": "yearly"
+  },
+  {
+    "id": "ea-play",
+    "name": "EA Play",
+    "domain": "ea.com",
+    "brandColor": "#000000",
+    "defaultPriceUsd": 7.19,
+    "defaultPriceEur": 5.99,
+    "category": "gaming",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "ubisoft-plus",
+    "name": "Ubisoft+",
+    "domain": "ubisoft.com",
+    "brandColor": "#0070FF",
+    "defaultPriceUsd": 9.49,
+    "defaultPriceEur": 7.99,
+    "category": "gaming",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "adobe-creative-cloud",
+    "name": "Adobe Creative Cloud",
+    "domain": "adobe.com",
+    "brandColor": "#FF0000",
+    "defaultPriceUsd": 69.99,
+    "defaultPriceEur": 58.79,
+    "category": "software",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "microsoft-365",
+    "name": "Microsoft 365",
+    "domain": "microsoft.com",
+    "brandColor": "#0078D4",
+    "defaultPriceUsd": 99.99,
+    "defaultPriceEur": 83.99,
+    "category": "software",
+    "defaultCycle": "yearly"
+  },
+  {
+    "id": "figma",
+    "name": "Figma",
+    "domain": "figma.com",
+    "brandColor": "#F24E1E",
+    "defaultPriceUsd": 23.79,
+    "defaultPriceEur": 20.00,
+    "category": "software",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "canva-pro",
+    "name": "Canva Pro",
+    "domain": "canva.com",
+    "brandColor": "#00C4CC",
+    "defaultPriceUsd": 15.19,
+    "defaultPriceEur": 12.79,
+    "category": "software",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "1password",
+    "name": "1Password",
+    "domain": "1password.com",
+    "brandColor": "#0094F5",
+    "defaultPriceUsd": 4.99,
+    "defaultPriceEur": 4.19,
+    "category": "software",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "bitwarden",
+    "name": "Bitwarden Premium",
+    "domain": "bitwarden.com",
+    "brandColor": "#175DDC",
+    "defaultPriceUsd": 1.65,
+    "defaultPriceEur": 1.39,
+    "category": "software",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "grammarly",
+    "name": "Grammarly Premium",
+    "domain": "grammarly.com",
+    "brandColor": "#15C39A",
+    "defaultPriceUsd": 12.00,
+    "defaultPriceEur": 11.00,
+    "category": "software",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "notion",
+    "name": "Notion Plus",
+    "domain": "notion.so",
+    "brandColor": "#000000",
+    "defaultPriceUsd": 12.00,
+    "defaultPriceEur": 10.00,
+    "category": "software",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "slack",
+    "name": "Slack Pro",
+    "domain": "slack.com",
+    "brandColor": "#4A154B",
+    "defaultPriceUsd": 8.75,
+    "defaultPriceEur": 7.50,
+    "category": "software",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "zoom",
+    "name": "Zoom Pro",
+    "domain": "zoom.us",
+    "brandColor": "#2D8CFF",
+    "defaultPriceUsd": 16.99,
+    "defaultPriceEur": 15.99,
+    "category": "software",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "icloud",
+    "name": "iCloud+",
+    "domain": "icloud.com",
+    "brandColor": "#3693F3",
+    "defaultPriceUsd": 2.99,
+    "defaultPriceEur": 2.99,
+    "category": "cloud",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "google-one",
+    "name": "Google One",
+    "domain": "one.google.com",
+    "brandColor": "#4285F4",
+    "defaultPriceUsd": 2.99,
+    "defaultPriceEur": 2.99,
+    "category": "cloud",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "dropbox",
+    "name": "Dropbox Plus",
+    "domain": "dropbox.com",
+    "brandColor": "#0061FF",
+    "defaultPriceUsd": 11.99,
+    "defaultPriceEur": 11.99,
+    "category": "cloud",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "onedrive",
+    "name": "OneDrive",
+    "domain": "onedrive.live.com",
+    "brandColor": "#0078D4",
+    "defaultPriceUsd": 1.99,
+    "defaultPriceEur": 1.99,
+    "category": "cloud",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "medium",
+    "name": "Medium",
+    "domain": "medium.com",
+    "brandColor": "#000000",
+    "defaultPriceUsd": 5.00,
+    "defaultPriceEur": 5.00,
+    "category": "news",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "strava",
+    "name": "Strava Premium",
+    "domain": "strava.com",
+    "brandColor": "#FC4C02",
+    "defaultPriceUsd": 11.99,
+    "defaultPriceEur": 10.99,
+    "category": "fitness",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "myfitnesspal",
+    "name": "MyFitnessPal Premium",
+    "domain": "myfitnesspal.com",
+    "brandColor": "#0066CC",
+    "defaultPriceUsd": 19.99,
+    "defaultPriceEur": 17.99,
+    "category": "fitness",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "calm",
+    "name": "Calm",
+    "domain": "calm.com",
+    "brandColor": "#7FBCE3",
+    "defaultPriceUsd": 14.99,
+    "defaultPriceEur": 13.99,
+    "category": "fitness",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "noom",
+    "name": "Noom",
+    "domain": "noom.com",
+    "brandColor": "#F5B04D",
+    "defaultPriceUsd": 70.00,
+    "defaultPriceEur": 65.00,
+    "category": "fitness",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "fitbit",
+    "name": "Fitbit Premium",
+    "domain": "fitbit.com",
+    "brandColor": "#00B0B9",
+    "defaultPriceUsd": 9.99,
+    "defaultPriceEur": 8.99,
+    "category": "fitness",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "nike-training",
+    "name": "Nike Training Club Premium",
+    "domain": "nike.com",
+    "brandColor": "#000000",
+    "defaultPriceUsd": 14.99,
+    "defaultPriceEur": 13.99,
+    "category": "fitness",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "doordash",
+    "name": "DoorDash DashPass",
+    "domain": "doordash.com",
+    "brandColor": "#FF3008",
+    "defaultPriceUsd": 9.99,
+    "defaultPriceEur": 8.99,
+    "category": "food",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "glovo",
+    "name": "Glovo Prime",
+    "domain": "glovoapp.com",
+    "brandColor": "#FFC244",
+    "defaultPriceUsd": 3.99,
+    "defaultPriceEur": 3.49,
+    "category": "food",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "wolt",
+    "name": "Wolt+",
+    "domain": "wolt.com",
+    "brandColor": "#009de0",
+    "defaultPriceUsd": 3.59,
+    "defaultPriceEur": 2.99,
+    "category": "food",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "uber-eats",
+    "name": "Uber Eats Pass",
+    "domain": "ubereats.com",
+    "brandColor": "#06C167",
+    "defaultPriceUsd": 9.99,
+    "defaultPriceEur": 8.99,
+    "category": "food",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "coursera",
+    "name": "Coursera Plus",
+    "domain": "coursera.org",
+    "brandColor": "#0056D2",
+    "defaultPriceUsd": 59.00,
+    "defaultPriceEur": 49.00,
+    "category": "education",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "skillshare",
+    "name": "Skillshare",
+    "domain": "skillshare.com",
+    "brandColor": "#00FF84",
+    "defaultPriceUsd": 13.99,
+    "defaultPriceEur": 12.99,
+    "category": "education",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "masterclass",
+    "name": "MasterClass",
+    "domain": "masterclass.com",
+    "brandColor": "#000000",
+    "defaultPriceUsd": 10.00,
+    "defaultPriceEur": 9.00,
+    "category": "education",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "duolingo",
+    "name": "Duolingo Super",
+    "domain": "duolingo.com",
+    "brandColor": "#58CC02",
+    "defaultPriceUsd": 12.99,
+    "defaultPriceEur": 11.99,
+    "category": "education",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "linkedin-learning",
+    "name": "LinkedIn Learning",
+    "domain": "linkedin.com",
+    "brandColor": "#0077B5",
+    "defaultPriceUsd": 29.99,
+    "defaultPriceEur": 27.99,
+    "category": "education",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "todoist",
+    "name": "Todoist Pro",
+    "domain": "todoist.com",
+    "brandColor": "#E44332",
+    "defaultPriceUsd": 4.00,
+    "defaultPriceEur": 4.00,
+    "category": "productivity",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "amazon-prime",
+    "name": "Amazon Prime",
+    "domain": "amazon.com",
+    "brandColor": "#FF9900",
+    "defaultPriceUsd": 14.99,
+    "defaultPriceEur": 8.99,
+    "category": "shopping",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "nordvpn",
+    "name": "NordVPN",
+    "domain": "nordvpn.com",
+    "brandColor": "#4687FF",
+    "defaultPriceUsd": 12.99,
+    "defaultPriceEur": 11.99,
+    "category": "vpn",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "expressvpn",
+    "name": "ExpressVPN",
+    "domain": "expressvpn.com",
+    "brandColor": "#DA3940",
+    "defaultPriceUsd": 12.95,
+    "defaultPriceEur": 11.49,
+    "category": "vpn",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "surfshark",
+    "name": "Surfshark",
+    "domain": "surfshark.com",
+    "brandColor": "#178DD6",
+    "defaultPriceUsd": 12.95,
+    "defaultPriceEur": 11.49,
+    "category": "vpn",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "protonvpn",
+    "name": "ProtonVPN",
+    "domain": "protonvpn.com",
+    "brandColor": "#6D4AFF",
+    "defaultPriceUsd": 9.99,
+    "defaultPriceEur": 9.99,
+    "category": "vpn",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "cyberghost",
+    "name": "CyberGhost",
+    "domain": "cyberghostvpn.com",
+    "brandColor": "#FFCC00",
+    "defaultPriceUsd": 12.99,
+    "defaultPriceEur": 11.99,
+    "category": "vpn",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "linkedin-premium",
+    "name": "LinkedIn Premium",
+    "domain": "linkedin.com",
+    "brandColor": "#0077B5",
+    "defaultPriceUsd": 29.99,
+    "defaultPriceEur": 27.99,
+    "category": "social",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "twitter-premium",
+    "name": "X Premium",
+    "domain": "x.com",
+    "brandColor": "#000000",
+    "defaultPriceUsd": 8.00,
+    "defaultPriceEur": 7.00,
+    "category": "social",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "telegram-premium",
+    "name": "Telegram Premium",
+    "domain": "telegram.org",
+    "brandColor": "#0088CC",
+    "defaultPriceUsd": 4.99,
+    "defaultPriceEur": 4.49,
+    "category": "social",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "discord-nitro",
+    "name": "Discord Nitro",
+    "domain": "discord.com",
+    "brandColor": "#5865F2",
+    "defaultPriceUsd": 9.99,
+    "defaultPriceEur": 9.99,
+    "category": "social",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "chatgpt-plus",
+    "name": "ChatGPT Plus",
+    "domain": "openai.com",
+    "brandColor": "#00A67E",
+    "defaultPriceUsd": 20.00,
+    "defaultPriceEur": 20.00,
+    "category": "software",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "claude-pro",
+    "name": "Claude Pro",
+    "domain": "anthropic.com",
+    "brandColor": "#D97706",
+    "defaultPriceUsd": 20.00,
+    "defaultPriceEur": 20.00,
+    "category": "software",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "midjourney",
+    "name": "Midjourney",
+    "domain": "midjourney.com",
+    "brandColor": "#000000",
+    "defaultPriceUsd": 10.00,
+    "defaultPriceEur": 10.00,
+    "category": "software",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "perplexity",
+    "name": "Perplexity Pro",
+    "domain": "perplexity.ai",
+    "brandColor": "#1DA1F2",
+    "defaultPriceUsd": 20.00,
+    "defaultPriceEur": 20.00,
+    "category": "software",
+    "defaultCycle": "monthly"
+  },
+  {
+    "id": "github-copilot",
+    "name": "GitHub Copilot",
+    "domain": "github.com",
+    "brandColor": "#24292E",
+    "defaultPriceUsd": 10.00,
+    "defaultPriceEur": 10.00,
+    "category": "software",
+    "defaultCycle": "monthly"
+  }
+]
