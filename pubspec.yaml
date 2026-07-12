@@ -24,10 +24,7 @@ dependencies:
   json_annotation: ^4.9.0
 
   # UI & Charts
-  fl_chart: ^0.70.2
   cached_network_image: ^3.4.1
-  flutter_svg: ^2.0.16
-  rive: ^0.13.19
   google_fonts: ^6.2.1
 
   # Notifications
@@ -41,8 +38,10 @@ dependencies:
   uuid: ^4.5.1
   path_provider: ^2.1.5
   shared_preferences: ^2.3.4
-  url_launcher: ^6.3.1
   path: ^1.9.0
+  file_picker: ^11.0.2
+  csv: ^8.0.0
+  flutter_timezone: ^5.1.0
 
 dev_dependencies:
   flutter_test:

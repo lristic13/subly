@@ -30,6 +30,8 @@ class SublyApp extends ConsumerWidget {
 
     // Fetch and cache exchange rates at app startup
     ref.watch(exchangeRatesProvider);
+    // Advance overdue billing dates and rebuild the notification schedule
+    ref.watch(subscriptionMaintenanceProvider);
 
     return MaterialApp.router(
       title: 'Subly.',

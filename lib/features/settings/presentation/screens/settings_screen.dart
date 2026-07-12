@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -21,9 +22,11 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settingsAsync = ref.watch(settingsProvider);
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: c.bg,
       body: SafeArea(
         child: settingsAsync.when(
           data: (settings) => SingleChildScrollView(
@@ -35,17 +38,17 @@ class SettingsScreen extends ConsumerWidget {
                 GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
                   behavior: HitTestBehavior.opaque,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Icon(
                       CupertinoIcons.chevron_back,
                       size: 24,
-                      color: AppColors.inkStrong,
+                      color: c.inkStrong,
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text('Settings', style: AppTypography.screenTitleLarge),
+                Text('Settings', style: t.screenTitleLarge),
                 const SizedBox(height: 18),
                 const _ProfileCard(),
                 const SizedBox(height: 26),
@@ -56,7 +59,7 @@ class SettingsScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                       _SettingsRow(
-                        iconBg: AppColors.accent,
+                        iconBg: c.accent,
                         iconGlyph: const Text(
                           '€',
                           style: TextStyle(
@@ -71,9 +74,9 @@ class SettingsScreen extends ConsumerWidget {
                             : 'USD (\$)',
                         onTap: () => _pickCurrency(context, ref, settings),
                       ),
-                      const Divider(color: AppColors.hairline2, height: 1),
+                      Divider(color: c.hairline2, height: 1),
                       _SettingsRow(
-                        iconBg: AppColors.accent300,
+                        iconBg: c.accent300,
                         iconGlyph: const Icon(
                           CupertinoIcons.chart_bar,
                           size: 14,
@@ -88,9 +91,9 @@ class SettingsScreen extends ConsumerWidget {
                             : 'Not set',
                         onTap: () => _editBudget(context, ref, settings),
                       ),
-                      const Divider(color: AppColors.hairline2, height: 1),
+                      Divider(color: c.hairline2, height: 1),
                       _SettingsRow(
-                        iconBg: AppColors.accent200,
+                        iconBg: c.accent200,
                         iconGlyph: const Icon(
                           CupertinoIcons.sun_max,
                           size: 14,
@@ -121,7 +124,7 @@ class SettingsScreen extends ConsumerWidget {
                             .read(settingsProvider.notifier)
                             .setRenewalReminders(v),
                       ),
-                      const Divider(color: AppColors.hairline2, height: 1),
+                      Divider(color: c.hairline2, height: 1),
                       _SwitchRow(
                         label: 'Price change alerts',
                         value: settings.priceChangeAlerts,
@@ -129,7 +132,7 @@ class SettingsScreen extends ConsumerWidget {
                             .read(settingsProvider.notifier)
                             .setPriceChangeAlerts(v),
                       ),
-                      const Divider(color: AppColors.hairline2, height: 1),
+                      Divider(color: c.hairline2, height: 1),
                       _SwitchRow(
                         label: 'Weekly summary',
                         value: settings.weeklySummary,
@@ -148,27 +151,43 @@ class SettingsScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                       InkWell(
+                        onTap: () => context.push('/import'),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text('Import data', style: t.body),
+                              ),
+                              Icon(
+                                CupertinoIcons.chevron_right,
+                                size: 14,
+                                color: c.chevron,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Divider(color: c.hairline2, height: 1),
+                      InkWell(
                         onTap: () => _exportCsv(context, ref),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           child: Row(
                             children: [
                               Expanded(
-                                child: Text(
-                                  'Export as CSV',
-                                  style: AppTypography.body,
-                                ),
+                                child: Text('Export as CSV', style: t.body),
                               ),
-                              const Icon(
+                              Icon(
                                 CupertinoIcons.chevron_right,
                                 size: 14,
-                                color: AppColors.chevron,
+                                color: c.chevron,
                               ),
                             ],
                           ),
                         ),
                       ),
-                      const Divider(color: AppColors.hairline2, height: 1),
+                      Divider(color: c.hairline2, height: 1),
                       InkWell(
                         onTap: () => _confirmDeleteAll(context, ref),
                         child: Padding(
@@ -178,9 +197,8 @@ class SettingsScreen extends ConsumerWidget {
                               Expanded(
                                 child: Text(
                                   'Delete all data',
-                                  style: AppTypography.rowTitle.copyWith(
-                                    color: AppColors.danger,
-                                  ),
+                                  style:
+                                      t.rowTitle.copyWith(color: c.danger),
                                 ),
                               ),
                             ],
@@ -191,15 +209,13 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 28),
-                Center(
-                  child: Text('Subly v1.0.0', style: AppTypography.footnote),
-                ),
+                Center(child: Text('Subly v1.0.0', style: t.footnote)),
               ],
             ),
           ),
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(
-            child: Text('Something went wrong', style: AppTypography.body),
+            child: Text('Something went wrong', style: t.body),
           ),
         ),
       ),
@@ -235,14 +251,8 @@ class SettingsScreen extends ConsumerWidget {
       title: 'Appearance',
       selected: settings.themeMode,
       options: const [
-        LedgerPickerOption(
-          value: ThemeMode.light,
-          label: 'Light',
-        ),
-        LedgerPickerOption(
-          value: ThemeMode.dark,
-          label: 'Dark',
-        ),
+        LedgerPickerOption(value: ThemeMode.light, label: 'Light'),
+        LedgerPickerOption(value: ThemeMode.dark, label: 'Dark'),
         LedgerPickerOption(
           value: ThemeMode.system,
           label: 'System',
@@ -260,13 +270,13 @@ class SettingsScreen extends ConsumerWidget {
     WidgetRef ref,
     AppSettings settings,
   ) async {
+    final t = context.ledgerText;
     final controller = TextEditingController(
       text: settings.monthlyBudget?.toStringAsFixed(2) ?? '',
     );
     final result = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -281,19 +291,16 @@ class SettingsScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Monthly budget', style: AppTypography.sectionHeader),
+            Text('Monthly budget', style: t.sectionHeader),
             const SizedBox(height: 4),
-            Text(
-              'Leave empty to remove the budget.',
-              style: AppTypography.caption,
-            ),
+            Text('Leave empty to remove the budget.', style: t.caption),
             const SizedBox(height: 14),
             TextField(
               controller: controller,
               autofocus: true,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
-              style: AppTypography.body,
+              style: t.body,
               decoration: InputDecoration(
                 hintText: '0.00',
                 prefixText:
@@ -369,6 +376,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Future<void> _confirmDeleteAll(BuildContext context, WidgetRef ref) async {
+    final danger = context.ledgerColors.danger;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -384,7 +392,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            style: TextButton.styleFrom(foregroundColor: danger),
             child: const Text('Delete'),
           ),
         ],
@@ -418,6 +426,8 @@ class _ProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
     return LedgerCard(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -425,8 +435,8 @@ class _ProfileCard extends StatelessWidget {
           Container(
             width: 52,
             height: 52,
-            decoration: const BoxDecoration(
-              gradient: AppColors.avatarGradient,
+            decoration: BoxDecoration(
+              gradient: c.avatarGradient,
               shape: BoxShape.circle,
             ),
             child: const Center(
@@ -445,22 +455,16 @@ class _ProfileCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Subly account',
-                  style: AppTypography.wordmark,
-                ),
+                Text('Subly account', style: t.wordmark),
                 const SizedBox(height: 2),
-                Text(
-                  'Data stored on this device',
-                  style: AppTypography.captionLarge,
-                ),
+                Text('Data stored on this device', style: t.captionLarge),
               ],
             ),
           ),
-          const Icon(
+          Icon(
             CupertinoIcons.chevron_right,
             size: 16,
-            color: AppColors.chevron,
+            color: c.chevron,
           ),
         ],
       ),
@@ -485,6 +489,8 @@ class _SettingsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -501,18 +507,16 @@ class _SettingsRow extends StatelessWidget {
               child: Center(child: iconGlyph),
             ),
             const SizedBox(width: 13),
-            Expanded(child: Text(label, style: AppTypography.body)),
+            Expanded(child: Text(label, style: t.body)),
             Text(
               value,
-              style: AppTypography.captionLarge.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+              style: t.captionLarge.copyWith(fontWeight: FontWeight.w500),
             ),
             const SizedBox(width: 6),
-            const Icon(
+            Icon(
               CupertinoIcons.chevron_right,
               size: 14,
-              color: AppColors.chevron,
+              color: c.chevron,
             ),
           ],
         ),
@@ -539,7 +543,7 @@ class _SwitchRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: AppTypography.body),
+          Text(label, style: context.ledgerText.body),
           LedgerSwitch(value: value, onChanged: onChanged),
         ],
       ),

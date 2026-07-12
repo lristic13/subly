@@ -36,100 +36,125 @@ abstract final class AppThemeTokens {
   static const double spacing12 = 48;
 }
 
-/// Light and dark theme definitions. The Ledger design is light-first;
-/// the dark theme keeps the app usable when the system forces it.
+/// Light and dark theme definitions, both built from the Ledger palettes.
 abstract final class AppTheme {
-  static ThemeData get light {
+  static ThemeData get light => _build(AppColors.light, Brightness.light);
+  static ThemeData get dark => _build(AppColors.dark, Brightness.dark);
+
+  static ThemeData _build(LedgerColors c, Brightness brightness) {
+    final ledgerText = LedgerTextStyles(c);
     final textTheme = AppTypography.textTheme.apply(
-      bodyColor: AppColors.ink,
-      displayColor: AppColors.inkStrong,
+      bodyColor: c.ink,
+      displayColor: c.inkStrong,
     );
+    final isDark = brightness == Brightness.dark;
+
+    final colorScheme = isDark
+        ? ColorScheme.dark(
+            primary: c.accent,
+            onPrimary: Colors.white,
+            primaryContainer: c.accent100,
+            onPrimaryContainer: c.accentText,
+            secondary: c.accent300,
+            onSecondary: Colors.white,
+            secondaryContainer: c.accent100,
+            onSecondaryContainer: c.accentText,
+            error: c.danger,
+            onError: Colors.white,
+            surface: c.surface,
+            onSurface: c.ink,
+            onSurfaceVariant: c.muted,
+            outline: c.hairline,
+            outlineVariant: c.hairline2,
+          )
+        : ColorScheme.light(
+            primary: c.accent,
+            onPrimary: Colors.white,
+            primaryContainer: c.accent100,
+            onPrimaryContainer: c.accent,
+            secondary: c.accent300,
+            onSecondary: Colors.white,
+            secondaryContainer: c.accent100,
+            onSecondaryContainer: c.accent,
+            error: c.danger,
+            onError: Colors.white,
+            surface: c.surface,
+            onSurface: c.ink,
+            onSurfaceVariant: c.muted,
+            outline: c.hairline,
+            outlineVariant: c.hairline2,
+          );
 
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
-      colorScheme: const ColorScheme.light(
-        primary: AppColors.accent,
-        onPrimary: Colors.white,
-        primaryContainer: AppColors.accent100,
-        onPrimaryContainer: AppColors.accent,
-        secondary: AppColors.accent300,
-        onSecondary: Colors.white,
-        secondaryContainer: AppColors.accent100,
-        onSecondaryContainer: AppColors.accent,
-        error: AppColors.danger,
-        onError: Colors.white,
-        surface: AppColors.surface,
-        onSurface: AppColors.ink,
-        onSurfaceVariant: AppColors.muted,
-        outline: AppColors.hairline,
-        outlineVariant: AppColors.hairline2,
-      ),
-      scaffoldBackgroundColor: AppColors.bg,
+      brightness: brightness,
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: c.bg,
       textTheme: textTheme,
       splashFactory: NoSplash.splashFactory,
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.bg,
-        foregroundColor: AppColors.inkStrong,
+        backgroundColor: c.bg,
+        foregroundColor: c.inkStrong,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
-        titleTextStyle: AppTypography.sectionHeader,
+        systemOverlayStyle:
+            isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+        titleTextStyle: ledgerText.sectionHeader,
       ),
       // No shadows — Ledger uses hairline borders instead of elevation.
       cardTheme: CardThemeData(
-        color: AppColors.surface,
+        color: c.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppThemeTokens.radiusCard),
-          side: const BorderSide(color: AppColors.hairline),
+          side: BorderSide(color: c.hairline),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.accent,
+          backgroundColor: c.accent,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 24),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppThemeTokens.radiusButton),
           ),
-          textStyle: AppTypography.button,
+          textStyle: ledgerText.button,
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: AppColors.accent,
+          backgroundColor: c.accent,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 24),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppThemeTokens.radiusButton),
           ),
-          textStyle: AppTypography.button,
+          textStyle: ledgerText.button,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.accent,
+          foregroundColor: c.accentText,
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 24),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppThemeTokens.radiusButton),
           ),
-          side: const BorderSide(color: AppColors.accent),
-          textStyle: AppTypography.button,
+          side: BorderSide(color: c.accent),
+          textStyle: ledgerText.button,
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.accent,
-          textStyle: AppTypography.rowTitle,
+          foregroundColor: c.accentText,
+          textStyle: ledgerText.rowTitle,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.fieldBg,
+        fillColor: c.fieldBg,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppThemeTokens.spacing4,
           vertical: AppThemeTokens.spacing3,
@@ -144,124 +169,62 @@ abstract final class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppThemeTokens.radiusField),
-          borderSide: const BorderSide(color: AppColors.accent),
+          borderSide: BorderSide(color: c.accent),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppThemeTokens.radiusField),
-          borderSide: const BorderSide(color: AppColors.danger),
+          borderSide: BorderSide(color: c.danger),
         ),
-        hintStyle: AppTypography.body.copyWith(color: AppColors.muted),
+        hintStyle: ledgerText.body.copyWith(color: c.muted),
       ),
-      dividerTheme: const DividerThemeData(
-        color: AppColors.hairline,
+      dividerTheme: DividerThemeData(
+        color: c.hairline,
         thickness: 1,
         space: 1,
       ),
       switchTheme: SwitchThemeData(
         trackColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected)
-              ? AppColors.accent
-              : AppColors.toggleOff,
+              ? c.accent
+              : c.toggleOff,
         ),
         thumbColor: const WidgetStatePropertyAll(Colors.white),
         trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: AppColors.fieldBg,
-        labelStyle: AppTypography.labelMedium.copyWith(
-          color: AppColors.accent,
-        ),
+        backgroundColor: c.fieldBg,
+        labelStyle: AppTypography.labelMedium.copyWith(color: c.accentText),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppThemeTokens.radiusField),
         ),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: AppColors.surface,
+        backgroundColor: c.surfaceElevated,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius:
               BorderRadius.circular(AppThemeTokens.radiusCardLarge),
         ),
-        titleTextStyle: AppTypography.sectionHeader,
-        contentTextStyle: AppTypography.body.copyWith(color: AppColors.muted),
+        titleTextStyle: ledgerText.sectionHeader,
+        contentTextStyle: ledgerText.body.copyWith(color: c.muted),
       ),
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: AppColors.surface,
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: c.surfaceElevated,
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
       ),
-    );
-  }
-
-  static ThemeData get dark {
-    final textTheme = AppTypography.textTheme.apply(
-      bodyColor: AppColors.textPrimaryDark,
-      displayColor: AppColors.textPrimaryDark,
-    );
-
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
-      colorScheme: const ColorScheme.dark(
-        primary: AppColors.accent300,
-        onPrimary: Colors.white,
-        primaryContainer: AppColors.primaryDark,
-        onPrimaryContainer: AppColors.accent200,
-        secondary: AppColors.accent300,
-        onSecondary: AppColors.backgroundDark,
-        error: AppColors.danger,
-        onError: Colors.white,
-        surface: AppColors.surfaceDark,
-        onSurface: AppColors.textPrimaryDark,
-        onSurfaceVariant: AppColors.textSecondaryDark,
-        outline: AppColors.borderDark,
-        outlineVariant: AppColors.borderDark,
-      ),
-      scaffoldBackgroundColor: AppColors.backgroundDark,
-      textTheme: textTheme,
-      appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.backgroundDark,
-        foregroundColor: AppColors.textPrimaryDark,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
-        titleTextStyle: AppTypography.sectionHeader.copyWith(
-          color: AppColors.textPrimaryDark,
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: isDark ? c.surfaceElevated : c.inkStrong,
+        contentTextStyle: ledgerText.body.copyWith(
+          color: isDark ? c.ink : Colors.white,
         ),
+        behavior: SnackBarBehavior.floating,
       ),
-      cardTheme: CardThemeData(
-        color: AppColors.surfaceDark,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppThemeTokens.radiusCard),
-          side: const BorderSide(color: AppColors.borderDark),
-        ),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.accent,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 24),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppThemeTokens.radiusButton),
-          ),
-          textStyle: AppTypography.button,
-        ),
-      ),
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: AppColors.accent300,
-          textStyle: AppTypography.rowTitle,
-        ),
-      ),
-      dividerTheme: const DividerThemeData(
-        color: AppColors.borderDark,
-        thickness: 1,
-        space: 1,
+      datePickerTheme: DatePickerThemeData(
+        backgroundColor: c.surfaceElevated,
+        surfaceTintColor: Colors.transparent,
       ),
     );
   }

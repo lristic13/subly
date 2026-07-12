@@ -23,23 +23,28 @@ class StatsScreen extends ConsumerWidget {
     final cancelled =
         ref.watch(cancelledSubscriptionsProvider).valueOrNull ??
             const <Subscription>[];
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: c.bg,
       body: SafeArea(
         bottom: false,
         child: activeAsync.when(
           data: (active) {
             final monthlyTotal = active.fold<double>(
               0,
-              (sum, s) => sum + s.monthlyCostIn(currency),
+              (sum, s) => sum + s.billableMonthlyCostIn(currency),
             );
             final byCategory = <SubscriptionCategory, double>{};
             for (final sub in active) {
-              byCategory[sub.category] =
-                  (byCategory[sub.category] ?? 0) + sub.monthlyCostIn(currency);
+              final monthly = sub.billableMonthlyCostIn(currency);
+              if (monthly > 0) {
+                byCategory[sub.category] =
+                    (byCategory[sub.category] ?? 0) + monthly;
+              }
             }
-            final buckets = buildCategoryBuckets(byCategory);
+            final buckets = buildCategoryBuckets(byCategory, c.chartShades);
 
             return SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(24, 18, 24, 40),
@@ -49,22 +54,22 @@ class StatsScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Insights', style: AppTypography.screenTitleLarge),
+                      Text('Insights', style: t.screenTitleLarge),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.accentSoft,
+                          color: c.accentSoft,
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
                           '${DateTime.now().year}',
-                          style: AppTypography.caption.copyWith(
+                          style: t.caption.copyWith(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.accent,
+                            color: c.accentText,
                           ),
                         ),
                       ),
@@ -77,7 +82,7 @@ class StatsScreen extends ConsumerWidget {
                     currency: currency,
                   ),
                   const SizedBox(height: 28),
-                  Text('Monthly spend', style: AppTypography.sectionHeader),
+                  Text('Monthly spend', style: t.sectionHeader),
                   const SizedBox(height: 16),
                   _MonthlyChart(
                     active: active,
@@ -85,7 +90,7 @@ class StatsScreen extends ConsumerWidget {
                     currency: currency,
                   ),
                   const SizedBox(height: 28),
-                  Text('By category', style: AppTypography.sectionHeader),
+                  Text('By category', style: t.sectionHeader),
                   const SizedBox(height: 16),
                   for (var i = 0; i < buckets.length; i++) ...[
                     if (i > 0) const SizedBox(height: 16),
@@ -97,7 +102,7 @@ class StatsScreen extends ConsumerWidget {
                   if (buckets.isEmpty)
                     Text(
                       'Add subscriptions to see your breakdown.',
-                      style: AppTypography.captionLarge,
+                      style: t.captionLarge,
                     ),
                 ],
               ),
@@ -105,7 +110,7 @@ class StatsScreen extends ConsumerWidget {
           },
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(
-            child: Text('Something went wrong', style: AppTypography.body),
+            child: Text('Something went wrong', style: t.body),
           ),
         ),
       ),
@@ -126,11 +131,13 @@ class _ProjectionHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.accent,
+        color: c.accent,
         borderRadius: BorderRadius.circular(22),
       ),
       child: Column(
@@ -138,23 +145,20 @@ class _ProjectionHero extends StatelessWidget {
         children: [
           Text(
             'Projected this year',
-            style: AppTypography.captionLarge.copyWith(
+            style: t.captionLarge.copyWith(
               color: Colors.white.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             CurrencyUtils.formatGrouped(monthlyTotal * 12, currency),
-            style: AppTypography.detailPrice.copyWith(
-              fontSize: 38,
-              color: Colors.white,
-            ),
+            style: t.detailPrice.copyWith(fontSize: 38, color: Colors.white),
           ),
           const SizedBox(height: 8),
           Text(
             'Avg ${CurrencyUtils.formatGrouped(monthlyTotal, currency)} / month '
             'across $activeCount subscription${activeCount == 1 ? '' : 's'}',
-            style: AppTypography.captionLarge.copyWith(
+            style: t.captionLarge.copyWith(
               color: Colors.white.withValues(alpha: 0.75),
             ),
           ),
@@ -186,7 +190,10 @@ class _MonthlyChart extends StatelessWidget {
       final stillRunning = sub.isActive ||
           sub.cancelledDate == null ||
           !sub.cancelledDate!.isBefore(startOfMonth);
-      if (startedBy && stillRunning) {
+      // A month inside the free trial costs nothing.
+      final pastTrial =
+          sub.trialEndDate == null || !sub.trialEndDate!.isAfter(endOfMonth);
+      if (startedBy && stillRunning && pastTrial) {
         total += sub.monthlyCostIn(currency);
       }
     }
@@ -195,6 +202,8 @@ class _MonthlyChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
     final now = DateTime.now();
     final months = [
       for (var i = 6; i >= 0; i--) DateTime(now.year, now.month - i),
@@ -217,9 +226,8 @@ class _MonthlyChart extends StatelessWidget {
                         ? (totals[i] / maxTotal * 88).clamp(6.0, 88.0)
                         : 6,
                     decoration: BoxDecoration(
-                      color: i == months.length - 1
-                          ? AppColors.accent
-                          : AppColors.barTrack,
+                      color:
+                          i == months.length - 1 ? c.accent : c.barTrack,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -237,11 +245,9 @@ class _MonthlyChart extends StatelessWidget {
                 child: Text(
                   DateFormat('MMMMM').format(months[i]),
                   textAlign: TextAlign.center,
-                  style: AppTypography.caption.copyWith(
+                  style: t.caption.copyWith(
                     fontSize: 11,
-                    color: i == months.length - 1
-                        ? AppColors.accent
-                        : AppColors.muted,
+                    color: i == months.length - 1 ? c.accentText : c.muted,
                     fontWeight: i == months.length - 1
                         ? FontWeight.w600
                         : FontWeight.w400,
@@ -264,19 +270,18 @@ class _CategoryProgressRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
     final fillPerMille = (bucket.fraction * 1000).round().clamp(1, 1000);
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              bucket.label,
-              style: AppTypography.body.copyWith(fontSize: 13),
-            ),
+            Text(bucket.label, style: t.body.copyWith(fontSize: 13)),
             Text(
               CurrencyUtils.formatGrouped(bucket.amount, currency),
-              style: AppTypography.rowAmount.copyWith(fontSize: 13),
+              style: t.rowAmount.copyWith(fontSize: 13),
             ),
           ],
         ),
@@ -294,7 +299,7 @@ class _CategoryProgressRow extends StatelessWidget {
                 if (fillPerMille < 1000)
                   Expanded(
                     flex: 1000 - fillPerMille,
-                    child: Container(color: AppColors.barTrack2),
+                    child: Container(color: c.barTrack2),
                   ),
               ],
             ),

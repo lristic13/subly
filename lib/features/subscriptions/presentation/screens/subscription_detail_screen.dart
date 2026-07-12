@@ -24,25 +24,24 @@ class SubscriptionDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final subscriptionAsync =
         ref.watch(subscriptionByIdProvider(subscriptionId));
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: c.bg,
       body: SafeArea(
         child: subscriptionAsync.when(
           data: (subscription) {
             if (subscription == null) {
               return Center(
-                child: Text(
-                  'Subscription not found',
-                  style: AppTypography.body,
-                ),
+                child: Text('Subscription not found', style: t.body),
               );
             }
             return _DetailBody(subscription: subscription);
           },
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(
-            child: Text('Something went wrong', style: AppTypography.body),
+            child: Text('Something went wrong', style: t.body),
           ),
         ),
       ),
@@ -56,14 +55,14 @@ class _DetailBody extends ConsumerWidget {
   final Subscription subscription;
 
   /// Amount paid so far this year, in the subscription's own currency:
-  /// completed charge months from max(Jan, start) through the current month,
-  /// capped at the cancellation month for cancelled subscriptions.
+  /// completed charge months from max(Jan, first charge) through the current
+  /// month, capped at the cancellation month for cancelled subscriptions.
+  /// Charges start at trial end when there is a free trial.
   double get _paidThisYear {
     final now = DateTime.now();
     final startOfYear = DateTime(now.year);
-    final from = subscription.startDate.isAfter(startOfYear)
-        ? subscription.startDate
-        : startOfYear;
+    final chargeStart = subscription.trialEndDate ?? subscription.startDate;
+    final from = chargeStart.isAfter(startOfYear) ? chargeStart : startOfYear;
     final until = !subscription.isActive && subscription.cancelledDate != null
         ? subscription.cancelledDate!
         : now;
@@ -77,6 +76,8 @@ class _DetailBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currency = subscription.currency;
     final dateFormat = DateFormat('MMM d, yyyy');
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 8, 24, 40),
@@ -90,12 +91,12 @@ class _DetailBody extends ConsumerWidget {
               GestureDetector(
                 onTap: () => context.pop(),
                 behavior: HitTestBehavior.opaque,
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Icon(
                     CupertinoIcons.chevron_back,
                     size: 24,
-                    color: AppColors.inkStrong,
+                    color: c.inkStrong,
                   ),
                 ),
               ),
@@ -104,9 +105,7 @@ class _DetailBody extends ConsumerWidget {
                     .push('/subscriptions/${subscription.id}/edit'),
                 child: Text(
                   'Edit',
-                  style: AppTypography.rowTitle.copyWith(
-                    color: AppColors.accent,
-                  ),
+                  style: t.rowTitle.copyWith(color: c.accentText),
                 ),
               ),
             ],
@@ -124,19 +123,19 @@ class _DetailBody extends ConsumerWidget {
                   radius: 19,
                 ),
                 const SizedBox(height: 14),
-                Text(subscription.name, style: AppTypography.detailName),
+                Text(subscription.name, style: t.detailName),
                 const SizedBox(height: 8),
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
                   decoration: BoxDecoration(
-                    color: AppColors.accentSoft,
+                    color: c.accentSoft,
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
                     subscription.category.displayName,
-                    style: AppTypography.caption.copyWith(
-                      color: AppColors.accent,
+                    style: t.caption.copyWith(
+                      color: c.accentText,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -144,13 +143,33 @@ class _DetailBody extends ConsumerWidget {
                 const SizedBox(height: 18),
                 Text(
                   CurrencyUtils.formatGrouped(subscription.price, currency),
-                  style: AppTypography.detailPrice,
+                  style: t.detailPrice,
                 ),
                 const SizedBox(height: 6),
                 Text(
                   '/ ${subscription.billingCycle.displayName.toLowerCase()}',
-                  style: AppTypography.body.copyWith(color: AppColors.muted),
+                  style: t.body.copyWith(color: c.muted),
                 ),
+                if (subscription.isInTrial) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 11,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: c.accentSoft,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      'Free until ${DateFormat('MMM d').format(subscription.trialEndDate!)}',
+                      style: t.caption.copyWith(
+                        color: c.accentText,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -160,21 +179,27 @@ class _DetailBody extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 18),
             child: Column(
               children: [
-                _InfoRow(
-                  label: 'Next charge',
-                  value: dateFormat.format(subscription.nextBillingDate),
-                ),
-                const Divider(color: AppColors.hairline2, height: 1),
+                if (subscription.isInTrial)
+                  _InfoRow(
+                    label: 'Trial ends',
+                    value: dateFormat.format(subscription.trialEndDate!),
+                  )
+                else
+                  _InfoRow(
+                    label: 'Next charge',
+                    value: dateFormat.format(subscription.nextBillingDate),
+                  ),
+                Divider(color: c.hairline2, height: 1),
                 _InfoRow(
                   label: 'Billing cycle',
                   value: subscription.billingCycle.displayName,
                 ),
-                const Divider(color: AppColors.hairline2, height: 1),
+                Divider(color: c.hairline2, height: 1),
                 _InfoRow(
                   label: 'Subscribed since',
                   value: DateFormat('MMM yyyy').format(subscription.startDate),
                 ),
-                const Divider(color: AppColors.hairline2, height: 1),
+                Divider(color: c.hairline2, height: 1),
                 _InfoRow(
                   label: 'Yearly cost',
                   value: CurrencyUtils.formatGrouped(
@@ -190,12 +215,10 @@ class _DetailBody extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Paid this year', style: AppTypography.rowTitle),
+              Text('Paid this year', style: t.rowTitle),
               Text(
                 CurrencyUtils.formatGrouped(_paidThisYear, currency),
-                style: AppTypography.rowAmount.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+                style: t.rowAmount.copyWith(fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -232,6 +255,7 @@ class _DetailBody extends ConsumerWidget {
   }
 
   Future<void> _confirmCancel(BuildContext context, WidgetRef ref) async {
+    final danger = context.ledgerColors.danger;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -247,7 +271,7 @@ class _DetailBody extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            style: TextButton.styleFrom(foregroundColor: danger),
             child: const Text('Mark as canceled'),
           ),
         ],
@@ -263,6 +287,7 @@ class _DetailBody extends ConsumerWidget {
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final danger = context.ledgerColors.danger;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -277,7 +302,7 @@ class _DetailBody extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            style: TextButton.styleFrom(foregroundColor: danger),
             child: const Text('Delete'),
           ),
         ],
@@ -301,18 +326,23 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 14),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: AppTypography.body.copyWith(
-            color: AppColors.muted,
-            fontWeight: FontWeight.w400,
-          )),
+          Text(
+            label,
+            style: t.body.copyWith(
+              color: c.muted,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
           Text(
             value,
-            style: AppTypography.rowTitle.copyWith(
+            style: t.rowTitle.copyWith(
               fontFeatures: AppTypography.tabularFigures,
             ),
           ),
@@ -331,10 +361,14 @@ class _YearChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
     final now = DateTime.now();
-    final startMonth = subscription.startDate.year < now.year
+    final chargeStart = subscription.trialEndDate ?? subscription.startDate;
+    final startMonth = chargeStart.year < now.year
         ? 1
-        : subscription.startDate.month;
+        : chargeStart.year > now.year
+            ? 13 // charges only begin next year — nothing paid yet
+            : chargeStart.month;
     final endMonth = !subscription.isActive &&
             subscription.cancelledDate != null &&
             subscription.cancelledDate!.year == now.year
@@ -352,7 +386,7 @@ class _YearChart extends StatelessWidget {
               child: Container(
                 height: _heightFor(month, startMonth, endMonth, now.month),
                 decoration: BoxDecoration(
-                  color: _colorFor(month, startMonth, endMonth, now.month),
+                  color: _colorFor(c, month, startMonth, endMonth, now.month),
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
@@ -369,12 +403,10 @@ class _YearChart extends StatelessWidget {
     return 12;
   }
 
-  Color _colorFor(int month, int start, int end, int current) {
-    if (month == current && month >= start && month <= end) {
-      return AppColors.accent;
-    }
-    if (month >= start && month <= end) return AppColors.barTrackAlt;
-    return AppColors.barTrack2;
+  Color _colorFor(LedgerColors c, int month, int start, int end, int current) {
+    if (month == current && month >= start && month <= end) return c.accent;
+    if (month >= start && month <= end) return c.barTrackAlt;
+    return c.barTrack2;
   }
 }
 
@@ -386,16 +418,15 @@ class _DangerTextButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
     return GestureDetector(
       onTap: onPressed,
       behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 13),
         child: Center(
-          child: Text(
-            label,
-            style: AppTypography.rowTitle.copyWith(color: AppColors.danger),
-          ),
+          child: Text(label, style: t.rowTitle.copyWith(color: c.danger)),
         ),
       ),
     );

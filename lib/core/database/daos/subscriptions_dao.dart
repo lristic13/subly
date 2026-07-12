@@ -28,6 +28,7 @@ class SubscriptionsDao extends DatabaseAccessor<AppDatabase>
       domain: row.domain,
       brandColor: row.brandColor,
       catalogItemId: row.catalogItemId,
+      trialEndDate: row.trialEndDate,
       isActive: row.isActive,
       cancelledDate: row.cancelledDate,
       createdAt: row.createdAt,
@@ -88,6 +89,7 @@ class SubscriptionsDao extends DatabaseAccessor<AppDatabase>
         domain: Value(subscription.domain),
         brandColor: Value(subscription.brandColor),
         catalogItemId: Value(subscription.catalogItemId),
+        trialEndDate: Value(subscription.trialEndDate),
         isActive: Value(subscription.isActive),
         cancelledDate: Value(subscription.cancelledDate),
       ),
@@ -111,6 +113,7 @@ class SubscriptionsDao extends DatabaseAccessor<AppDatabase>
         domain: Value(subscription.domain),
         brandColor: Value(subscription.brandColor),
         catalogItemId: Value(subscription.catalogItemId),
+        trialEndDate: Value(subscription.trialEndDate),
         isActive: Value(subscription.isActive),
         cancelledDate: Value(subscription.cancelledDate),
         updatedAt: Value(DateTime.now()),
@@ -143,6 +146,16 @@ class SubscriptionsDao extends DatabaseAccessor<AppDatabase>
         updatedAt: Value(DateTime.now()),
       ),
     );
+  }
+
+  /// Get active subscriptions whose billing date has already passed
+  Future<List<Subscription>> getOverdueActive() async {
+    final query = select(subscriptionsTable)
+      ..where((t) => t.isActive.equals(true))
+      ..where((t) => t.nextBillingDate.isSmallerThanValue(DateTime.now()));
+
+    final rows = await query.get();
+    return rows.map(_rowToSubscription).toList();
   }
 
   /// Watch subscriptions renewing within N days

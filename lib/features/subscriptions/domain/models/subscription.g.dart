@@ -20,6 +20,9 @@ _$SubscriptionImpl _$$SubscriptionImplFromJson(Map<String, dynamic> json) =>
       domain: json['domain'] as String?,
       brandColor: json['brandColor'] as String?,
       catalogItemId: json['catalogItemId'] as String?,
+      trialEndDate: json['trialEndDate'] == null
+          ? null
+          : DateTime.parse(json['trialEndDate'] as String),
       isActive: json['isActive'] as bool? ?? true,
       cancelledDate: json['cancelledDate'] == null
           ? null
@@ -46,6 +49,7 @@ Map<String, dynamic> _$$SubscriptionImplToJson(_$SubscriptionImpl instance) =>
       'domain': instance.domain,
       'brandColor': instance.brandColor,
       'catalogItemId': instance.catalogItemId,
+      'trialEndDate': instance.trialEndDate?.toIso8601String(),
       'isActive': instance.isActive,
       'cancelledDate': instance.cancelledDate?.toIso8601String(),
       'createdAt': instance.createdAt?.toIso8601String(),

@@ -52,6 +52,7 @@ class _AddEditSubscriptionScreenState
   String? _brandColor;
   String? _catalogItemId;
   String? _description;
+  DateTime? _trialEndDate;
   DateTime? _storedNextBillingDate;
   DateTime? _storedStartDate;
   bool _billingChanged = false;
@@ -100,18 +101,22 @@ class _AddEditSubscriptionScreenState
     _brandColor = subscription.brandColor;
     _catalogItemId = subscription.catalogItemId;
     _description = subscription.description;
+    _trialEndDate = subscription.trialEndDate;
     _storedNextBillingDate = subscription.nextBillingDate;
     _storedStartDate = subscription.startDate;
   }
 
   /// First charge date rolled forward with the billing cycle until it lands
-  /// today or later.
+  /// today or later. During a free trial the first charge is the trial end.
   DateTime get _nextBillingDate {
+    final today = DateTime.now();
+    final startOfToday = DateTime(today.year, today.month, today.day);
+    if (_trialEndDate != null && !_trialEndDate!.isBefore(startOfToday)) {
+      return _trialEndDate!;
+    }
     if (widget.isEditing && !_billingChanged && _storedNextBillingDate != null) {
       return _storedNextBillingDate!;
     }
-    final today = DateTime.now();
-    final startOfToday = DateTime(today.year, today.month, today.day);
     var next = _firstPayment;
     while (next.isBefore(startOfToday)) {
       next = _billingCycle.nextBillingDate(next);
@@ -125,6 +130,9 @@ class _AddEditSubscriptionScreenState
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
+
     if (widget.isEditing) {
       final subscriptionAsync =
           ref.watch(subscriptionByIdProvider(widget.subscriptionId!));
@@ -132,13 +140,10 @@ class _AddEditSubscriptionScreenState
         data: (subscription) {
           if (subscription == null) {
             return Scaffold(
-              backgroundColor: AppColors.bg,
+              backgroundColor: c.bg,
               body: SafeArea(
                 child: Center(
-                  child: Text(
-                    'Subscription not found',
-                    style: AppTypography.body,
-                  ),
+                  child: Text('Subscription not found', style: t.body),
                 ),
               ),
             );
@@ -146,15 +151,15 @@ class _AddEditSubscriptionScreenState
           _initializeFromSubscription(subscription);
           return _buildForm(context);
         },
-        loading: () => const Scaffold(
-          backgroundColor: AppColors.bg,
-          body: Center(child: CircularProgressIndicator()),
+        loading: () => Scaffold(
+          backgroundColor: c.bg,
+          body: const Center(child: CircularProgressIndicator()),
         ),
         error: (e, _) => Scaffold(
-          backgroundColor: AppColors.bg,
+          backgroundColor: c.bg,
           body: SafeArea(
             child: Center(
-              child: Text('Something went wrong', style: AppTypography.body),
+              child: Text('Something went wrong', style: t.body),
             ),
           ),
         ),
@@ -167,9 +172,11 @@ class _AddEditSubscriptionScreenState
     final settings = ref.watch(settingsProvider);
     final remindersOn = settings.valueOrNull?.renewalReminders ?? true;
     final dateFormat = DateFormat('MMM d, yyyy');
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: c.bg,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(24, 8, 24, 40),
@@ -182,17 +189,17 @@ class _AddEditSubscriptionScreenState
                 children: [
                   Text(
                     widget.isEditing ? 'Edit subscription' : 'New subscription',
-                    style: AppTypography.screenTitle,
+                    style: t.screenTitle,
                   ),
                   GestureDetector(
                     onTap: () => context.pop(),
                     behavior: HitTestBehavior.opaque,
-                    child: const Padding(
-                      padding: EdgeInsets.all(4),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
                       child: Icon(
                         CupertinoIcons.xmark,
                         size: 22,
-                        color: AppColors.muted2,
+                        color: c.muted2,
                       ),
                     ),
                   ),
@@ -219,23 +226,21 @@ class _AddEditSubscriptionScreenState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Service', style: AppTypography.caption),
+                            Text('Service', style: t.caption),
                             const SizedBox(height: 2),
                             Text(
                               _name.isEmpty ? 'Choose service' : _name,
-                              style: AppTypography.rowTitle.copyWith(
-                                color: _name.isEmpty
-                                    ? AppColors.muted
-                                    : AppColors.ink,
+                              style: t.rowTitle.copyWith(
+                                color: _name.isEmpty ? c.muted : c.ink,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const Icon(
+                      Icon(
                         CupertinoIcons.chevron_right,
                         size: 16,
-                        color: AppColors.chevron,
+                        color: c.chevron,
                       ),
                     ],
                   ),
@@ -246,16 +251,13 @@ class _AddEditSubscriptionScreenState
               Center(
                 child: Column(
                   children: [
-                    Text('Amount', style: AppTypography.captionLarge),
+                    Text('Amount', style: t.captionLarge),
                     const SizedBox(height: 10),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
-                          _currencySymbol,
-                          style: AppTypography.addAmountPrefix,
-                        ),
+                        Text(_currencySymbol, style: t.addAmountPrefix),
                         const SizedBox(width: 6),
                         IntrinsicWidth(
                           child: TextField(
@@ -269,32 +271,30 @@ class _AddEditSubscriptionScreenState
                                 RegExp(r'^\d*\.?\d{0,2}'),
                               ),
                             ],
-                            style: AppTypography.addAmount,
-                            cursorColor: AppColors.accent,
+                            style: t.addAmount,
+                            cursorColor: c.accent,
                             decoration: InputDecoration(
                               hintText: '0.00',
-                              hintStyle: AppTypography.addAmount.copyWith(
-                                color: AppColors.muted2,
-                              ),
+                              hintStyle: t.addAmount.copyWith(color: c.muted2),
                               filled: false,
                               isDense: true,
                               contentPadding:
                                   const EdgeInsets.only(bottom: 6),
-                              border: const UnderlineInputBorder(
+                              border: UnderlineInputBorder(
                                 borderSide: BorderSide(
-                                  color: AppColors.accent,
+                                  color: c.accent,
                                   width: 2,
                                 ),
                               ),
-                              enabledBorder: const UnderlineInputBorder(
+                              enabledBorder: UnderlineInputBorder(
                                 borderSide: BorderSide(
-                                  color: AppColors.accent,
+                                  color: c.accent,
                                   width: 2,
                                 ),
                               ),
-                              focusedBorder: const UnderlineInputBorder(
+                              focusedBorder: UnderlineInputBorder(
                                 borderSide: BorderSide(
-                                  color: AppColors.accent,
+                                  color: c.accent,
                                   width: 2,
                                 ),
                               ),
@@ -317,32 +317,60 @@ class _AddEditSubscriptionScreenState
                       value: _billingCycle.displayName,
                       onTap: _pickBillingCycle,
                     ),
-                    const Divider(color: AppColors.hairline2, height: 1),
+                    Divider(color: c.hairline2, height: 1),
                     _FieldRow(
                       label: 'First payment',
                       value: dateFormat.format(_firstPayment),
                       onTap: _pickFirstPayment,
                     ),
-                    const Divider(color: AppColors.hairline2, height: 1),
+                    Divider(color: c.hairline2, height: 1),
                     _FieldRow(
                       label: 'Category',
                       value: _category.displayName,
                       accent: true,
                       onTap: _pickCategory,
                     ),
-                    const Divider(color: AppColors.hairline2, height: 1),
+                    Divider(color: c.hairline2, height: 1),
                     _FieldRow(
                       label: 'Currency',
                       value: _currency == 'EUR' ? 'EUR (€)' : 'USD (\$)',
                       onTap: _pickCurrency,
                     ),
-                    const Divider(color: AppColors.hairline2, height: 1),
+                    Divider(color: c.hairline2, height: 1),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Remind me before', style: AppTypography.body),
+                          Text('Free trial', style: t.body),
+                          LedgerSwitch(
+                            value: _trialEndDate != null,
+                            onChanged: (value) => setState(() {
+                              _trialEndDate = value
+                                  ? DateTime.now()
+                                      .add(const Duration(days: 7))
+                                  : null;
+                            }),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (_trialEndDate != null) ...[
+                      Divider(color: c.hairline2, height: 1),
+                      _FieldRow(
+                        label: 'Trial ends',
+                        value: dateFormat.format(_trialEndDate!),
+                        accent: true,
+                        onTap: _pickTrialEnd,
+                      ),
+                    ],
+                    Divider(color: c.hairline2, height: 1),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Remind me before', style: t.body),
                           LedgerSwitch(
                             value: remindersOn,
                             onChanged: (value) => ref
@@ -371,11 +399,11 @@ class _AddEditSubscriptionScreenState
   String get _currencySymbol => _currency == 'EUR' ? '€' : '\$';
 
   Future<void> _editName() async {
+    final t = context.ledgerText;
     final controller = TextEditingController(text: _name);
     final result = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -390,13 +418,13 @@ class _AddEditSubscriptionScreenState
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Service name', style: AppTypography.sectionHeader),
+            Text('Service name', style: t.sectionHeader),
             const SizedBox(height: 14),
             TextField(
               controller: controller,
               autofocus: true,
               textCapitalization: TextCapitalization.words,
-              style: AppTypography.body,
+              style: t.body,
               decoration: const InputDecoration(hintText: 'e.g. Netflix'),
               onSubmitted: (value) => Navigator.pop(context, value),
             ),
@@ -430,6 +458,16 @@ class _AddEditSubscriptionScreenState
         _billingChanged = true;
       });
     }
+  }
+
+  Future<void> _pickTrialEnd() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _trialEndDate ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) setState(() => _trialEndDate = picked);
   }
 
   Future<void> _pickFirstPayment() async {
@@ -484,7 +522,8 @@ class _AddEditSubscriptionScreenState
       final subscription = Subscription(
         id: widget.subscriptionId ?? const Uuid().v4(),
         name: _name.trim(),
-        price: double.parse(_amountController.text),
+        // Round to whole cents so float noise never enters the database.
+        price: (double.parse(_amountController.text) * 100).round() / 100,
         currency: _currency,
         billingCycle: _billingCycle,
         category: _category,
@@ -492,6 +531,7 @@ class _AddEditSubscriptionScreenState
             ? (_storedStartDate ?? _firstPayment)
             : _firstPayment,
         nextBillingDate: _nextBillingDate,
+        trialEndDate: _trialEndDate,
         description: _description,
         domain: _domain,
         catalogItemId: _catalogItemId,
@@ -537,19 +577,21 @@ class _FieldRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
     return InkWell(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 14),
         child: Row(
           children: [
-            Expanded(child: Text(label, style: AppTypography.body)),
+            Expanded(child: Text(label, style: t.body)),
             if (accent) ...[
               Container(
                 width: 9,
                 height: 9,
-                decoration: const BoxDecoration(
-                  color: AppColors.accent,
+                decoration: BoxDecoration(
+                  color: c.accent,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -557,15 +599,15 @@ class _FieldRow extends StatelessWidget {
             ],
             Text(
               value,
-              style: AppTypography.rowTitle.copyWith(
-                color: accent ? AppColors.accent : AppColors.muted,
+              style: t.rowTitle.copyWith(
+                color: accent ? c.accentText : c.muted,
               ),
             ),
             const SizedBox(width: 6),
-            const Icon(
+            Icon(
               CupertinoIcons.chevron_right,
               size: 14,
-              color: AppColors.chevron,
+              color: c.chevron,
             ),
           ],
         ),

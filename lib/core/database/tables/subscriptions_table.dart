@@ -44,6 +44,11 @@ class SubscriptionsTable extends Table {
   /// Reference to catalog item if created from catalog
   TextColumn get catalogItemId => text().nullable()();
 
+  /// End of the free trial period; null when the subscription has no trial.
+  /// Until this date the subscription costs nothing; the first charge is
+  /// expected at trial end.
+  DateTimeColumn get trialEndDate => dateTime().nullable()();
+
   /// Whether the subscription is currently active
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
 

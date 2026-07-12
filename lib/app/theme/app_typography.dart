@@ -3,145 +3,171 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
-/// Typography for the "Ledger" design — Instrument Sans throughout.
+/// The Ledger type scale, colored for one palette. Resolve the active set
+/// with [AppTypography.of] (or `context.ledgerText`).
 /// Letter-spacing values are em × font size (Flutter uses logical px).
+class LedgerTextStyles {
+  LedgerTextStyles(LedgerColors c)
+      : heroAmount = _base(
+          size: 56,
+          weight: FontWeight.w700,
+          spacingEm: -0.035,
+          height: 1.0,
+          color: c.inkStrong,
+          tabular: true,
+        ),
+        screenTitleLarge = _base(
+          size: 30,
+          weight: FontWeight.w700,
+          spacingEm: -0.03,
+          color: c.inkStrong,
+        ),
+        detailPrice = _base(
+          size: 44,
+          weight: FontWeight.w700,
+          spacingEm: -0.03,
+          height: 1.0,
+          color: c.inkStrong,
+          tabular: true,
+        ),
+        addAmount = _base(
+          size: 52,
+          weight: FontWeight.w700,
+          spacingEm: -0.03,
+          height: 1.0,
+          color: c.inkStrong,
+          tabular: true,
+        ),
+        addAmountPrefix = _base(
+          size: 34,
+          weight: FontWeight.w600,
+          height: 1.0,
+          color: c.muted,
+        ),
+        screenTitle = _base(
+          size: 22,
+          weight: FontWeight.w700,
+          spacingEm: -0.02,
+          color: c.inkStrong,
+        ),
+        detailName = _base(
+          size: 23,
+          weight: FontWeight.w700,
+          color: c.inkStrong,
+        ),
+        sectionHeader = _base(
+          size: 17,
+          weight: FontWeight.w600,
+          color: c.inkStrong,
+        ),
+        wordmark = _base(
+          size: 17,
+          weight: FontWeight.w700,
+          spacingEm: -0.02,
+          color: c.inkStrong,
+        ),
+        rowTitle = _base(size: 15, weight: FontWeight.w600, color: c.ink),
+        rowAmount = _base(
+          size: 15,
+          weight: FontWeight.w600,
+          color: c.ink,
+          tabular: true,
+        ),
+        body = _base(size: 15, weight: FontWeight.w500, color: c.ink),
+        caption = _base(size: 12, weight: FontWeight.w400, color: c.muted),
+        captionLarge =
+            _base(size: 13, weight: FontWeight.w400, color: c.muted),
+        sectionLabel = _base(
+          size: 12,
+          weight: FontWeight.w600,
+          spacingEm: 0.06,
+          color: c.muted2,
+        ),
+        footnote = _base(size: 12, weight: FontWeight.w400, color: c.footnote),
+        button = _base(size: 15, weight: FontWeight.w600, color: Colors.white);
+
+  /// Hero amount on Home: 56 / w700 / -0.035em, line-height 1.0
+  final TextStyle heroAmount;
+
+  /// Large screen title ("Subscriptions", "Insights", "Settings"): 30 / w700
+  final TextStyle screenTitleLarge;
+
+  /// Detail price: 44 / w700
+  final TextStyle detailPrice;
+
+  /// Add screen amount: 52 / w700
+  final TextStyle addAmount;
+
+  /// Muted "€" prefix next to the add amount: 34 / w600
+  final TextStyle addAmountPrefix;
+
+  /// Medium screen title ("New subscription"): 22 / w700
+  final TextStyle screenTitle;
+
+  /// Detail header name: 23 / w700
+  final TextStyle detailName;
+
+  /// Section header ("Upcoming", "Monthly spend"): 17 / w600
+  final TextStyle sectionHeader;
+
+  /// Wordmark "Subly": 17 / w700
+  final TextStyle wordmark;
+
+  /// List row title: 15 / w600
+  final TextStyle rowTitle;
+
+  /// Money in list rows: 15 / w600 tabular
+  final TextStyle rowAmount;
+
+  /// Setting labels / body: 15 / w500
+  final TextStyle body;
+
+  /// Secondary text under row titles: 12 / w400 muted
+  final TextStyle caption;
+
+  /// Slightly larger secondary text: 13 / w400 muted
+  final TextStyle captionLarge;
+
+  /// Uppercase section label: 12 / w600 / +0.06em, muted2
+  final TextStyle sectionLabel;
+
+  /// Tiny footnote (version string)
+  final TextStyle footnote;
+
+  /// Primary button label (white on accent in both modes)
+  final TextStyle button;
+
+  static TextStyle _base({
+    required double size,
+    required FontWeight weight,
+    double? spacingEm,
+    double? height,
+    Color? color,
+    bool tabular = false,
+  }) {
+    return GoogleFonts.instrumentSans(
+      fontSize: size,
+      fontWeight: weight,
+      letterSpacing: spacingEm != null ? size * spacingEm : null,
+      height: height,
+      color: color,
+      fontFeatures: tabular ? AppTypography.tabularFigures : null,
+    );
+  }
+}
+
+/// Typography for the "Ledger" design — Instrument Sans throughout.
 abstract final class AppTypography {
   static TextStyle get _base => GoogleFonts.instrumentSans();
 
   static const tabularFigures = [FontFeature.tabularFigures()];
 
-  // ── Ledger scale ──────────────────────────────────────────────
+  static final _light = LedgerTextStyles(AppColors.light);
+  static final _dark = LedgerTextStyles(AppColors.dark);
 
-  /// Hero amount on Home: 56 / w700 / -0.035em, line-height 1.0
-  static TextStyle get heroAmount => _base.copyWith(
-        fontSize: 56,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 56 * -0.035,
-        height: 1.0,
-        color: AppColors.inkStrong,
-        fontFeatures: tabularFigures,
-      );
-
-  /// Large screen title ("Subscriptions", "Insights", "Settings"): 30 / w700
-  static TextStyle get screenTitleLarge => _base.copyWith(
-        fontSize: 30,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 30 * -0.03,
-        color: AppColors.inkStrong,
-      );
-
-  /// Detail price: 44 / w700
-  static TextStyle get detailPrice => _base.copyWith(
-        fontSize: 44,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 44 * -0.03,
-        height: 1.0,
-        color: AppColors.inkStrong,
-        fontFeatures: tabularFigures,
-      );
-
-  /// Add screen amount: 52 / w700
-  static TextStyle get addAmount => _base.copyWith(
-        fontSize: 52,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 52 * -0.03,
-        height: 1.0,
-        color: AppColors.inkStrong,
-        fontFeatures: tabularFigures,
-      );
-
-  /// Muted "€" prefix next to the add amount: 34 / w600
-  static TextStyle get addAmountPrefix => _base.copyWith(
-        fontSize: 34,
-        fontWeight: FontWeight.w600,
-        height: 1.0,
-        color: AppColors.muted,
-      );
-
-  /// Medium screen title ("New subscription"): 22 / w700
-  static TextStyle get screenTitle => _base.copyWith(
-        fontSize: 22,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 22 * -0.02,
-        color: AppColors.inkStrong,
-      );
-
-  /// Detail header name: 23 / w700
-  static TextStyle get detailName => _base.copyWith(
-        fontSize: 23,
-        fontWeight: FontWeight.w700,
-        color: AppColors.inkStrong,
-      );
-
-  /// Section header ("Upcoming", "Monthly spend"): 17 / w600
-  static TextStyle get sectionHeader => _base.copyWith(
-        fontSize: 17,
-        fontWeight: FontWeight.w600,
-        color: AppColors.inkStrong,
-      );
-
-  /// Wordmark "Subly": 17 / w700
-  static TextStyle get wordmark => _base.copyWith(
-        fontSize: 17,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 17 * -0.02,
-        color: AppColors.inkStrong,
-      );
-
-  /// List row title / amounts: 15 / w600
-  static TextStyle get rowTitle => _base.copyWith(
-        fontSize: 15,
-        fontWeight: FontWeight.w600,
-        color: AppColors.ink,
-      );
-
-  /// Money in list rows: 15 / w600 tabular
-  static TextStyle get rowAmount => rowTitle.copyWith(
-        fontFeatures: tabularFigures,
-      );
-
-  /// Setting labels / body: 15 / w500
-  static TextStyle get body => _base.copyWith(
-        fontSize: 15,
-        fontWeight: FontWeight.w500,
-        color: AppColors.ink,
-      );
-
-  /// Secondary text under row titles: 12 / w400 muted
-  static TextStyle get caption => _base.copyWith(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        color: AppColors.muted,
-      );
-
-  /// Slightly larger secondary text: 13 / w400 muted
-  static TextStyle get captionLarge => _base.copyWith(
-        fontSize: 13,
-        fontWeight: FontWeight.w400,
-        color: AppColors.muted,
-      );
-
-  /// Uppercase section label: 12 / w600 / +0.06em, muted2
-  static TextStyle get sectionLabel => _base.copyWith(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 12 * 0.06,
-        color: AppColors.muted2,
-      );
-
-  /// Tiny footnote (version string)
-  static TextStyle get footnote => _base.copyWith(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        color: AppColors.footnote,
-      );
-
-  /// Primary button label
-  static TextStyle get button => _base.copyWith(
-        fontSize: 15,
-        fontWeight: FontWeight.w600,
-        color: Colors.white,
-      );
+  /// Resolve the Ledger text styles for the ambient theme brightness.
+  static LedgerTextStyles of(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? _dark : _light;
 
   // ── Legacy names (still used by onboarding/catalog screens) ───
 
@@ -262,4 +288,9 @@ abstract final class AppTypography {
         labelMedium: labelMedium,
         labelSmall: labelSmall,
       );
+}
+
+/// Terse access to the active Ledger text styles: `context.ledgerText.body`.
+extension LedgerTextContext on BuildContext {
+  LedgerTextStyles get ledgerText => AppTypography.of(this);
 }

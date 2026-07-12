@@ -4,8 +4,12 @@ import 'package:flutter/material.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_typography.dart';
 
-/// Logo.dev API token - user should provide their own free token
-const String _logoDevToken = 'pk_PCdEMN6vRNKorlbUCwpWTQ';
+/// Logo.dev publishable token. Override at build time with
+/// `--dart-define=LOGO_DEV_TOKEN=pk_...`; the default is a free-tier key.
+const String _logoDevToken = String.fromEnvironment(
+  'LOGO_DEV_TOKEN',
+  defaultValue: 'pk_PCdEMN6vRNKorlbUCwpWTQ',
+);
 
 /// Domains with dark logos that need inversion in dark mode
 const _darkLogoDomains = {

@@ -1,12 +1,10 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../features/subscriptions/domain/models/subscription.dart';
-
-part 'notification_service.g.dart';
+import '../utils/currency_utils.dart';
 
 /// Service for managing local notifications
 class NotificationService {
@@ -19,9 +17,16 @@ class NotificationService {
   static Future<void> initialize() async {
     if (_initialized) return;
 
-    // Initialize timezone
+    // Initialize timezone database and set the device's local zone so
+    // scheduled reminders fire at local wall-clock time.
     tz.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('America/New_York'));
+    try {
+      final info = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(info.identifier));
+    } catch (_) {
+      // Keep the timezone package default (UTC) if detection fails —
+      // reminders shift by the UTC offset but still fire.
+    }
 
     // Android settings
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -74,6 +79,19 @@ class NotificationService {
     // The payload contains the subscription ID
   }
 
+  /// Stable 31-bit notification id derived from the subscription UUID.
+  /// FNV-1a rather than String.hashCode, which isn't guaranteed stable
+  /// across Dart versions — a changed hash would orphan scheduled
+  /// notifications after an SDK upgrade.
+  static int notificationId(String subscriptionId) {
+    var hash = 0x811c9dc5;
+    for (final unit in subscriptionId.codeUnits) {
+      hash ^= unit;
+      hash = (hash * 0x01000193) & 0xFFFFFFFF;
+    }
+    return hash & 0x7FFFFFFF;
+  }
+
   /// Schedule a renewal reminder for a subscription
   static Future<void> scheduleRenewalReminder(Subscription subscription) async {
     if (!_initialized) await initialize();
@@ -98,10 +116,17 @@ class NotificationService {
 
     final tzScheduledDate = tz.TZDateTime.from(scheduledDate, tz.local);
 
+    final symbol = CurrencyUtils.getSymbol(subscription.currency);
+    final amount = '$symbol${subscription.price.toStringAsFixed(2)}';
+    final isTrialConversion = subscription.trialEndDate != null &&
+        !subscription.trialEndDate!.isBefore(reminderDate);
+
     await _plugin.zonedSchedule(
-      subscription.id.hashCode,
-      'Renewal Tomorrow',
-      '${subscription.name} will renew tomorrow for \$${subscription.price.toStringAsFixed(2)}',
+      notificationId(subscription.id),
+      isTrialConversion ? 'Trial Ending Tomorrow' : 'Renewal Tomorrow',
+      isTrialConversion
+          ? '${subscription.name}\'s free trial ends tomorrow — you\'ll be charged $amount'
+          : '${subscription.name} will renew tomorrow for $amount',
       tzScheduledDate,
       NotificationDetails(
         android: AndroidNotificationDetails(
@@ -128,7 +153,13 @@ class NotificationService {
   /// Cancel a scheduled reminder for a subscription
   static Future<void> cancelRenewalReminder(String subscriptionId) async {
     if (!_initialized) await initialize();
-    await _plugin.cancel(subscriptionId.hashCode);
+    await _plugin.cancel(notificationId(subscriptionId));
+  }
+
+  /// Cancel every pending reminder (used when reminders are turned off)
+  static Future<void> cancelAll() async {
+    if (!_initialized) await initialize();
+    await _plugin.cancelAll();
   }
 
   /// Reschedule all reminders (call on app start)
@@ -159,16 +190,4 @@ class NotificationService {
     // For iOS, we assume enabled if initialized
     return true;
   }
-
-  /// Get all pending notifications
-  static Future<List<PendingNotificationRequest>> getPendingNotifications() async {
-    if (!_initialized) await initialize();
-    return _plugin.pendingNotificationRequests();
-  }
-}
-
-/// Provider for notification service initialization
-@riverpod
-Future<void> notificationInit(Ref ref) async {
-  await NotificationService.initialize();
 }

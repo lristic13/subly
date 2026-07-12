@@ -86,16 +86,18 @@ class _SubscriptionsListScreenState
     final settings = ref.watch(settingsProvider);
     final currency = settings.valueOrNull?.currency ?? 'EUR';
     final subscriptionsAsync = ref.watch(activeSubscriptionsProvider);
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: c.bg,
       body: SafeArea(
         bottom: false,
         child: subscriptionsAsync.when(
           data: (subscriptions) {
             final monthlyTotal = subscriptions.fold<double>(
               0,
-              (sum, s) => sum + s.monthlyCostIn(currency),
+              (sum, s) => sum + s.billableMonthlyCostIn(currency),
             );
             final visible = _visibleSubscriptions(subscriptions, currency);
 
@@ -105,11 +107,11 @@ class _SubscriptionsListScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 18),
-                  Text('Subscriptions', style: AppTypography.screenTitleLarge),
+                  Text('Subscriptions', style: t.screenTitleLarge),
                   const SizedBox(height: 6),
                   Text.rich(
                     TextSpan(
-                      style: AppTypography.captionLarge,
+                      style: t.captionLarge,
                       children: [
                         TextSpan(text: '${subscriptions.length} active · '),
                         TextSpan(
@@ -117,8 +119,8 @@ class _SubscriptionsListScreenState
                             monthlyTotal,
                             currency,
                           ),
-                          style: AppTypography.captionLarge.copyWith(
-                            color: AppColors.ink,
+                          style: t.captionLarge.copyWith(
+                            color: c.ink,
                             fontWeight: FontWeight.w600,
                             fontFeatures: AppTypography.tabularFigures,
                           ),
@@ -142,24 +144,24 @@ class _SubscriptionsListScreenState
                           padding:
                               const EdgeInsets.symmetric(horizontal: 14),
                           decoration: BoxDecoration(
-                            color: AppColors.fieldBg,
+                            color: c.fieldBg,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
                             children: [
                               Text(
                                 _sortMode.label,
-                                style: AppTypography.caption.copyWith(
+                                style: t.caption.copyWith(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.accent,
+                                  color: c.accentText,
                                 ),
                               ),
                               const SizedBox(width: 4),
-                              const Icon(
+                              Icon(
                                 CupertinoIcons.chevron_down,
                                 size: 12,
-                                color: AppColors.accent,
+                                color: c.accentText,
                               ),
                             ],
                           ),
@@ -176,10 +178,8 @@ class _SubscriptionsListScreenState
                         : ListView.separated(
                             padding: const EdgeInsets.only(bottom: 24),
                             itemCount: visible.length,
-                            separatorBuilder: (_, _) => const Divider(
-                              color: AppColors.hairline,
-                              height: 1,
-                            ),
+                            separatorBuilder: (_, _) =>
+                                Divider(color: c.hairline, height: 1),
                             itemBuilder: (context, index) => _SubscriptionRow(
                               subscription: visible[index],
                               currency: currency,
@@ -192,7 +192,7 @@ class _SubscriptionsListScreenState
           },
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(
-            child: Text('Something went wrong', style: AppTypography.body),
+            child: Text('Something went wrong', style: t.body),
           ),
         ),
       ),
@@ -208,30 +208,28 @@ class _SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
     return Container(
       height: 42,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: AppColors.fieldBg,
+        color: c.fieldBg,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          const Icon(
-            CupertinoIcons.search,
-            size: 17,
-            color: AppColors.muted,
-          ),
+          Icon(CupertinoIcons.search, size: 17, color: c.muted),
           const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: controller,
               onChanged: onChanged,
-              style: AppTypography.body,
+              style: t.body,
               decoration: InputDecoration(
                 isDense: true,
                 hintText: 'Search',
-                hintStyle: AppTypography.body.copyWith(color: AppColors.muted),
+                hintStyle: t.body.copyWith(color: c.muted),
                 filled: false,
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
@@ -254,6 +252,8 @@ class _SubscriptionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
     return InkWell(
       onTap: () {
         HapticFeedback.selectionClick();
@@ -275,12 +275,26 @@ class _SubscriptionRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(subscription.name, style: AppTypography.rowTitle),
+                  Text(subscription.name, style: t.rowTitle),
                   const SizedBox(height: 2),
-                  Text(
-                    '${subscription.category.displayName} · '
-                    '${subscription.billingCycle.displayName}',
-                    style: AppTypography.caption,
+                  Text.rich(
+                    TextSpan(
+                      style: t.caption,
+                      children: [
+                        if (subscription.isInTrial)
+                          TextSpan(
+                            text: 'Trial · ',
+                            style: t.caption.copyWith(
+                              color: c.accentText,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        TextSpan(
+                          text: '${subscription.category.displayName} · '
+                              '${subscription.billingCycle.displayName}',
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -293,13 +307,10 @@ class _SubscriptionRow extends StatelessWidget {
                     subscription.monthlyCostIn(currency),
                     currency,
                   ),
-                  style: AppTypography.rowAmount,
+                  style: t.rowAmount,
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  '/mo',
-                  style: AppTypography.caption.copyWith(fontSize: 11),
-                ),
+                Text('/mo', style: t.caption.copyWith(fontSize: 11)),
               ],
             ),
           ],
@@ -316,15 +327,16 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.ledgerText;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('No subscriptions yet', style: AppTypography.sectionHeader),
+          Text('No subscriptions yet', style: t.sectionHeader),
           const SizedBox(height: 6),
           Text(
             'Start tracking your recurring expenses.',
-            style: AppTypography.captionLarge,
+            style: t.captionLarge,
           ),
           const SizedBox(height: 20),
           LedgerPrimaryButton(label: 'Add subscription', onPressed: onAdd),

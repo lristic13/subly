@@ -7,10 +7,12 @@ import '../../domain/models/subscription_category.dart';
 /// Abstracts the data source (Drift DAO) from the presentation layer
 class SubscriptionRepository {
   final SubscriptionsDao _dao;
-  final bool _notificationsEnabled;
 
-  SubscriptionRepository(this._dao, {bool notificationsEnabled = true})
-      : _notificationsEnabled = notificationsEnabled;
+  /// Whether renewal reminders should be scheduled — wired to the
+  /// "Renewal reminders" setting.
+  final bool remindersEnabled;
+
+  SubscriptionRepository(this._dao, {this.remindersEnabled = true});
 
   /// Watch all active subscriptions
   Stream<List<Subscription>> watchAllActive() => _dao.watchAllActive();
@@ -27,7 +29,7 @@ class SubscriptionRepository {
   /// Create a new subscription
   Future<void> addSubscription(Subscription subscription) async {
     await _dao.insertSubscription(subscription);
-    if (_notificationsEnabled) {
+    if (remindersEnabled && subscription.isActive) {
       await NotificationService.scheduleRenewalReminder(subscription);
     }
   }
@@ -35,35 +37,29 @@ class SubscriptionRepository {
   /// Update an existing subscription
   Future<void> updateSubscription(Subscription subscription) async {
     await _dao.updateSubscription(subscription);
-    if (_notificationsEnabled) {
-      // Reschedule notification with updated info
-      await NotificationService.cancelRenewalReminder(subscription.id);
-      if (subscription.isActive) {
-        await NotificationService.scheduleRenewalReminder(subscription);
-      }
+    // Reschedule notification with updated info
+    await NotificationService.cancelRenewalReminder(subscription.id);
+    if (remindersEnabled && subscription.isActive) {
+      await NotificationService.scheduleRenewalReminder(subscription);
     }
   }
 
   /// Delete a subscription permanently
   Future<void> deleteSubscription(String id) async {
     await _dao.deleteSubscription(id);
-    if (_notificationsEnabled) {
-      await NotificationService.cancelRenewalReminder(id);
-    }
+    await NotificationService.cancelRenewalReminder(id);
   }
 
   /// Cancel a subscription (soft delete)
   Future<void> cancelSubscription(String id, DateTime cancelledDate) async {
     await _dao.cancelSubscription(id, cancelledDate);
-    if (_notificationsEnabled) {
-      await NotificationService.cancelRenewalReminder(id);
-    }
+    await NotificationService.cancelRenewalReminder(id);
   }
 
   /// Reactivate a cancelled subscription
   Future<void> reactivateSubscription(String id) async {
     await _dao.reactivateSubscription(id);
-    if (_notificationsEnabled) {
+    if (remindersEnabled) {
       final subscription = await _dao.getById(id);
       if (subscription != null) {
         await NotificationService.scheduleRenewalReminder(subscription);
@@ -85,20 +81,32 @@ class SubscriptionRepository {
   /// Watch count of active subscriptions
   Stream<int> watchActiveCount() => _dao.watchActiveCount();
 
-  /// Advance the next billing date for a subscription
-  Future<void> advanceNextBillingDate(String id, DateTime newDate) =>
-      _dao.advanceNextBillingDate(id, newDate);
+  /// Startup maintenance: roll every overdue billing date forward to its
+  /// next future occurrence (billing dates otherwise go stale — nothing
+  /// else advances them), then rebuild the pending-notification schedule.
+  Future<void> runStartupMaintenance() async {
+    final now = DateTime.now();
+    final startOfToday = DateTime(now.year, now.month, now.day);
 
-  /// Renew a subscription (advance billing date and reschedule notification)
-  Future<void> renewSubscription(String id, DateTime newBillingDate) async {
-    await _dao.advanceNextBillingDate(id, newBillingDate);
-    if (_notificationsEnabled) {
-      // Reschedule notification for the new billing date
-      await NotificationService.cancelRenewalReminder(id);
-      final subscription = await _dao.getById(id);
-      if (subscription != null) {
-        await NotificationService.scheduleRenewalReminder(subscription);
+    for (final subscription in await _dao.getOverdueActive()) {
+      var next = subscription.nextBillingDate;
+      while (next.isBefore(startOfToday)) {
+        next = subscription.billingCycle.nextBillingDate(next);
       }
+      await _dao.advanceNextBillingDate(subscription.id, next);
     }
+
+    await rescheduleAllReminders();
+  }
+
+  /// Rebuild the notification schedule from scratch for all active
+  /// subscriptions, honoring the reminders setting.
+  Future<void> rescheduleAllReminders() async {
+    if (!remindersEnabled) {
+      await NotificationService.cancelAll();
+      return;
+    }
+    final active = await _dao.watchAllActive().first;
+    await NotificationService.rescheduleAllReminders(active);
   }
 }

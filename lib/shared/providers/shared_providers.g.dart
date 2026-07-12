@@ -45,9 +45,10 @@ final subscriptionsDaoProvider = Provider<SubscriptionsDao>.internal(
 // ignore: unused_element
 typedef SubscriptionsDaoRef = ProviderRef<SubscriptionsDao>;
 String _$subscriptionRepositoryHash() =>
-    r'53e0e99df7baf350c9b6218bf630625b30506c21';
+    r'cf426a6117e45209b0ffd54d8c8d8087329ca6bc';
 
-/// Provides the SubscriptionRepository
+/// Provides the SubscriptionRepository. Rebuilds when the renewal-reminders
+/// setting changes so scheduling honors the toggle.
 ///
 /// Copied from [subscriptionRepository].
 @ProviderFor(subscriptionRepository)
@@ -65,6 +66,29 @@ final subscriptionRepositoryProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SubscriptionRepositoryRef = ProviderRef<SubscriptionRepository>;
+String _$subscriptionMaintenanceHash() =>
+    r'af5b2c02b999a57ed32ee08d3eb022b957aa776f';
+
+/// Startup maintenance: advances overdue billing dates and rebuilds the
+/// notification schedule. Watched once from the app root; re-runs when the
+/// repository rebuilds (e.g. the reminders toggle changes), which keeps the
+/// pending notifications in sync with the setting.
+///
+/// Copied from [subscriptionMaintenance].
+@ProviderFor(subscriptionMaintenance)
+final subscriptionMaintenanceProvider = FutureProvider<void>.internal(
+  subscriptionMaintenance,
+  name: r'subscriptionMaintenanceProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$subscriptionMaintenanceHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef SubscriptionMaintenanceRef = FutureProviderRef<void>;
 String _$exchangeRateServiceHash() =>
     r'6c928f500ff9c96dd5bafcf031b4e32063f3c38a';
 

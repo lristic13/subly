@@ -3,7 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  rive_common
+  flutter_timezone
   share_plus
   sqlite3_flutter_libs
   url_launcher_windows

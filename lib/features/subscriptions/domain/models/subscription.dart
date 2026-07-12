@@ -47,6 +47,11 @@ class Subscription with _$Subscription {
     /// Reference to catalog item if created from catalog
     String? catalogItemId,
 
+    /// End of the free trial period; null when there is no trial.
+    /// The subscription costs nothing until this date — the first charge
+    /// is expected when the trial ends.
+    DateTime? trialEndDate,
+
     /// Whether the subscription is currently active
     @Default(true) bool isActive,
 
@@ -65,6 +70,15 @@ class Subscription with _$Subscription {
   /// Creates a Subscription from JSON
   factory Subscription.fromJson(Map<String, dynamic> json) =>
       _$SubscriptionFromJson(json);
+
+  /// Whether the free trial is still running.
+  bool get isInTrial =>
+      trialEndDate != null && trialEndDate!.isAfter(DateTime.now());
+
+  /// Monthly cost that actually hits the wallet right now — zero while the
+  /// free trial is running.
+  double billableMonthlyCostIn(String displayCurrency) =>
+      isInTrial ? 0 : monthlyCostIn(displayCurrency);
 
   /// Get the monthly cost of this subscription (in original currency)
   double get monthlyCost => billingCycle.toMonthly(price);

@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../features/catalog/domain/models/catalog_item.dart';
 import '../features/catalog/presentation/screens/catalog_search_screen.dart';
 import '../features/dashboard/presentation/screens/dashboard_screen.dart';
+import '../features/import/presentation/screens/import_screen.dart';
 import '../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../features/onboarding/providers/onboarding_providers.dart';
 import '../features/settings/presentation/screens/settings_screen.dart';
@@ -26,6 +27,7 @@ abstract class AppRoutes {
   static const subscriptionEdit = '/subscriptions/:id/edit';
   static const stats = '/stats';
   static const settings = '/settings';
+  static const import = '/import';
   static const onboarding = '/onboarding';
 }
 
@@ -167,6 +169,11 @@ GoRouter router(Ref ref) {
         path: AppRoutes.settings,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.import,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ImportScreen(),
       ),
     ],
   );

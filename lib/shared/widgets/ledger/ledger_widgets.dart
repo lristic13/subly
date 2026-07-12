@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_typography.dart';
 
-/// White card with a hairline border and no shadow — the Ledger surface.
+/// Card with a hairline border and no shadow — the Ledger surface.
 class LedgerCard extends StatelessWidget {
   const LedgerCard({
     super.key,
@@ -19,13 +19,14 @@ class LedgerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
     return Container(
       width: double.infinity,
       padding: padding,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: c.surface,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: AppColors.hairline),
+        border: Border.all(color: c.hairline),
       ),
       child: child,
     );
@@ -40,7 +41,7 @@ class SectionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(text.toUpperCase(), style: AppTypography.sectionLabel);
+    return Text(text.toUpperCase(), style: context.ledgerText.sectionLabel);
   }
 }
 
@@ -53,6 +54,7 @@ class LedgerSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: AnimatedContainer(
@@ -62,7 +64,7 @@ class LedgerSwitch extends StatelessWidget {
         height: 29,
         padding: const EdgeInsets.all(2.5),
         decoration: BoxDecoration(
-          color: value ? AppColors.accent : AppColors.toggleOff,
+          color: value ? c.accent : c.toggleOff,
           borderRadius: BorderRadius.circular(999),
         ),
         child: AnimatedAlign(
@@ -98,13 +100,14 @@ class LedgerPrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
     return GestureDetector(
       onTap: loading ? null : onPressed,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 15),
         decoration: BoxDecoration(
-          color: AppColors.accent,
+          color: c.accent,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Center(
@@ -117,7 +120,7 @@ class LedgerPrimaryButton extends StatelessWidget {
                     color: Colors.white,
                   ),
                 )
-              : Text(label, style: AppTypography.button),
+              : Text(label, style: context.ledgerText.button),
         ),
       ),
     );
@@ -144,9 +147,11 @@ Future<T?> showLedgerPicker<T>({
   required List<LedgerPickerOption<T>> options,
   T? selected,
 }) {
+  final c = context.ledgerColors;
+  final t = context.ledgerText;
   return showModalBottomSheet<T>(
     context: context,
-    backgroundColor: AppColors.surface,
+    backgroundColor: c.surfaceElevated,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -157,7 +162,7 @@ Future<T?> showLedgerPicker<T>({
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
-            child: Text(title, style: AppTypography.sectionHeader),
+            child: Text(title, style: t.sectionHeader),
           ),
           Flexible(
             child: ListView(
@@ -178,25 +183,19 @@ Future<T?> showLedgerPicker<T>({
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  option.label,
-                                  style: AppTypography.rowTitle,
-                                ),
+                                Text(option.label, style: t.rowTitle),
                                 if (option.detail != null) ...[
                                   const SizedBox(height: 2),
-                                  Text(
-                                    option.detail!,
-                                    style: AppTypography.caption,
-                                  ),
+                                  Text(option.detail!, style: t.caption),
                                 ],
                               ],
                             ),
                           ),
                           if (option.value == selected)
-                            const Icon(
+                            Icon(
                               CupertinoIcons.checkmark_alt,
                               size: 20,
-                              color: AppColors.accent,
+                              color: c.accentText,
                             ),
                         ],
                       ),

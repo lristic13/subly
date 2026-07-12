@@ -14,12 +14,13 @@ class MainShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: AppColors.bg,
-          border: Border(top: BorderSide(color: AppColors.tabDivider)),
+        decoration: BoxDecoration(
+          color: c.bg,
+          border: Border(top: BorderSide(color: c.tabDivider)),
         ),
         child: SafeArea(
           top: false,
@@ -84,6 +85,7 @@ class _TabIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -92,7 +94,7 @@ class _TabIcon extends StatelessWidget {
         child: Icon(
           icon,
           size: size,
-          color: active ? AppColors.accent : AppColors.iconInactive,
+          color: active ? c.accentText : c.iconInactive,
         ),
       ),
     );

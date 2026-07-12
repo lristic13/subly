@@ -6,7 +6,7 @@ part of 'dashboard_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$dashboardStatsHash() => r'ffa2e8900d12f570228ae261e22b04f6fc4bc7d6';
+String _$dashboardStatsHash() => r'2d78ba45258b015a4989fa3d7d660a695003f9a6';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -76,7 +76,7 @@ class DashboardStatsFamily extends Family<AsyncValue<DashboardStats>> {
 /// Provides aggregated dashboard statistics with currency conversion
 ///
 /// Copied from [dashboardStats].
-class DashboardStatsProvider extends AutoDisposeStreamProvider<DashboardStats> {
+class DashboardStatsProvider extends AutoDisposeFutureProvider<DashboardStats> {
   /// Provides aggregated dashboard statistics with currency conversion
   ///
   /// Copied from [dashboardStats].
@@ -108,7 +108,7 @@ class DashboardStatsProvider extends AutoDisposeStreamProvider<DashboardStats> {
 
   @override
   Override overrideWith(
-    Stream<DashboardStats> Function(DashboardStatsRef provider) create,
+    FutureOr<DashboardStats> Function(DashboardStatsRef provider) create,
   ) {
     return ProviderOverride(
       origin: this,
@@ -125,7 +125,7 @@ class DashboardStatsProvider extends AutoDisposeStreamProvider<DashboardStats> {
   }
 
   @override
-  AutoDisposeStreamProviderElement<DashboardStats> createElement() {
+  AutoDisposeFutureProviderElement<DashboardStats> createElement() {
     return _DashboardStatsProviderElement(this);
   }
 
@@ -145,174 +145,18 @@ class DashboardStatsProvider extends AutoDisposeStreamProvider<DashboardStats> {
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin DashboardStatsRef on AutoDisposeStreamProviderRef<DashboardStats> {
+mixin DashboardStatsRef on AutoDisposeFutureProviderRef<DashboardStats> {
   /// The parameter `currency` of this provider.
   String get currency;
 }
 
 class _DashboardStatsProviderElement
-    extends AutoDisposeStreamProviderElement<DashboardStats>
+    extends AutoDisposeFutureProviderElement<DashboardStats>
     with DashboardStatsRef {
   _DashboardStatsProviderElement(super.provider);
 
   @override
   String get currency => (origin as DashboardStatsProvider).currency;
-}
-
-String _$dashboardUpcomingRenewalsHash() =>
-    r'34d113495b4898737e267f8235b3f1d9e208615d';
-
-/// Provides upcoming renewals (next 7 days)
-///
-/// Copied from [dashboardUpcomingRenewals].
-@ProviderFor(dashboardUpcomingRenewals)
-final dashboardUpcomingRenewalsProvider =
-    AutoDisposeStreamProvider<List<Subscription>>.internal(
-      dashboardUpcomingRenewals,
-      name: r'dashboardUpcomingRenewalsProvider',
-      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$dashboardUpcomingRenewalsHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef DashboardUpcomingRenewalsRef =
-    AutoDisposeStreamProviderRef<List<Subscription>>;
-String _$dashboardInsightHash() => r'764c65e32fa4fca9fdfb86c2dd4397d606af2a3e';
-
-/// Provides contextual insights based on subscription data
-///
-/// Copied from [dashboardInsight].
-@ProviderFor(dashboardInsight)
-const dashboardInsightProvider = DashboardInsightFamily();
-
-/// Provides contextual insights based on subscription data
-///
-/// Copied from [dashboardInsight].
-class DashboardInsightFamily extends Family<AsyncValue<SublyInsight?>> {
-  /// Provides contextual insights based on subscription data
-  ///
-  /// Copied from [dashboardInsight].
-  const DashboardInsightFamily();
-
-  /// Provides contextual insights based on subscription data
-  ///
-  /// Copied from [dashboardInsight].
-  DashboardInsightProvider call({String currency = 'EUR'}) {
-    return DashboardInsightProvider(currency: currency);
-  }
-
-  @override
-  DashboardInsightProvider getProviderOverride(
-    covariant DashboardInsightProvider provider,
-  ) {
-    return call(currency: provider.currency);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'dashboardInsightProvider';
-}
-
-/// Provides contextual insights based on subscription data
-///
-/// Copied from [dashboardInsight].
-class DashboardInsightProvider
-    extends AutoDisposeStreamProvider<SublyInsight?> {
-  /// Provides contextual insights based on subscription data
-  ///
-  /// Copied from [dashboardInsight].
-  DashboardInsightProvider({String currency = 'EUR'})
-    : this._internal(
-        (ref) =>
-            dashboardInsight(ref as DashboardInsightRef, currency: currency),
-        from: dashboardInsightProvider,
-        name: r'dashboardInsightProvider',
-        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-            ? null
-            : _$dashboardInsightHash,
-        dependencies: DashboardInsightFamily._dependencies,
-        allTransitiveDependencies:
-            DashboardInsightFamily._allTransitiveDependencies,
-        currency: currency,
-      );
-
-  DashboardInsightProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.currency,
-  }) : super.internal();
-
-  final String currency;
-
-  @override
-  Override overrideWith(
-    Stream<SublyInsight?> Function(DashboardInsightRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: DashboardInsightProvider._internal(
-        (ref) => create(ref as DashboardInsightRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        currency: currency,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeStreamProviderElement<SublyInsight?> createElement() {
-    return _DashboardInsightProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is DashboardInsightProvider && other.currency == currency;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, currency.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin DashboardInsightRef on AutoDisposeStreamProviderRef<SublyInsight?> {
-  /// The parameter `currency` of this provider.
-  String get currency;
-}
-
-class _DashboardInsightProviderElement
-    extends AutoDisposeStreamProviderElement<SublyInsight?>
-    with DashboardInsightRef {
-  _DashboardInsightProviderElement(super.provider);
-
-  @override
-  String get currency => (origin as DashboardInsightProvider).currency;
 }
 
 // ignore_for_file: type=lint

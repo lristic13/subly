@@ -25,9 +25,20 @@ class DashboardScreen extends ConsumerWidget {
     final currency = settings.valueOrNull?.currency ?? 'EUR';
     final statsAsync = ref.watch(dashboardStatsProvider(currency: currency));
     final upcomingAsync = ref.watch(upcomingRenewalsProvider(days: 60));
+    final active =
+        ref.watch(activeSubscriptionsProvider).valueOrNull ??
+            const <Subscription>[];
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
+
+    // Trials converting to paid within the next week, soonest first.
+    final endingTrials = active
+        .where((s) => s.isInTrial && _daysUntil(s.trialEndDate!) <= 7)
+        .toList()
+      ..sort((a, b) => a.trialEndDate!.compareTo(b.trialEndDate!));
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: c.bg,
       body: SafeArea(
         bottom: false,
         child: statsAsync.when(
@@ -40,35 +51,57 @@ class DashboardScreen extends ConsumerWidget {
                 children: [
                   const _HomeHeader(),
                   const SizedBox(height: 28),
-                  Text('This month', style: AppTypography.captionLarge),
+                  Text('This month', style: t.captionLarge),
                   const SizedBox(height: 8),
                   Text(
                     CurrencyUtils.formatGrouped(
                       stats.totalMonthlySpend,
                       currency,
                     ),
-                    style: AppTypography.heroAmount,
+                    style: t.heroAmount,
                   ),
                   const SizedBox(height: 14),
                   _DeltaRow(currency: currency, activeCount: stats.activeCount),
+                  if (settings.valueOrNull?.monthlyBudget != null) ...[
+                    const SizedBox(height: 20),
+                    _BudgetBar(
+                      spent: stats.totalMonthlySpend,
+                      budget: settings.valueOrNull!.monthlyBudget!,
+                      currency: currency,
+                    ),
+                  ],
+                  if (endingTrials.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    _TrialAlertCard(
+                      subscription: endingTrials.first,
+                      currency: currency,
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   if (stats.spendByCategory.isNotEmpty) ...[
                     _CategoryBar(
-                      buckets: buildCategoryBuckets(stats.spendByCategory),
+                      buckets: buildCategoryBuckets(
+                        stats.spendByCategory,
+                        c.chartShades,
+                      ),
                     ),
+                    const SizedBox(height: 20),
+                  ],
+                  if (stats.activeCount > 0) ...[
+                    _StatRow(stats: stats),
                     const SizedBox(height: 28),
                   ],
                   if (upcoming.isNotEmpty) ...[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Upcoming', style: AppTypography.sectionHeader),
+                        Text('Upcoming', style: t.sectionHeader),
                         GestureDetector(
                           onTap: () => context.go('/subscriptions'),
                           child: Text(
                             'See all',
-                            style: AppTypography.captionLarge.copyWith(
-                              color: AppColors.accent,
+                            style: t.captionLarge.copyWith(
+                              color: c.accentText,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -77,8 +110,7 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     for (var i = 0; i < upcoming.length && i < 4; i++) ...[
-                      if (i > 0)
-                        const Divider(color: AppColors.hairline, height: 1),
+                      if (i > 0) Divider(color: c.hairline, height: 1),
                       _UpcomingRow(
                         subscription: upcoming[i],
                         currency: currency,
@@ -92,10 +124,156 @@ class DashboardScreen extends ConsumerWidget {
           },
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(
-            child: Text('Something went wrong', style: AppTypography.body),
+            child: Text('Something went wrong', style: t.body),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Whole days from today (date-only) until [date].
+int _daysUntil(DateTime date) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  return DateTime(date.year, date.month, date.day).difference(today).inDays;
+}
+
+/// Alert for a free trial converting to paid within the next week.
+class _TrialAlertCard extends StatelessWidget {
+  const _TrialAlertCard({required this.subscription, required this.currency});
+
+  final Subscription subscription;
+  final String currency;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
+    final days = _daysUntil(subscription.trialEndDate!);
+    final when = switch (days) {
+      <= 0 => 'today',
+      1 => 'tomorrow',
+      _ => 'in $days days',
+    };
+
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        context.push('/subscriptions/${subscription.id}');
+      },
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: c.accentSoft,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            LogoImage(
+              name: subscription.name,
+              domain: subscription.domain,
+              brandColor: subscription.brandColor,
+              size: 38,
+              radius: 11,
+            ),
+            const SizedBox(width: 13),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${subscription.name} trial ends $when',
+                    style: t.rowTitle.copyWith(color: c.accentText),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${CurrencyUtils.formatGrouped(subscription.monthlyCostIn(currency), currency)}'
+                    '/mo after · cancel anytime before',
+                    style: t.caption,
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              CupertinoIcons.chevron_right,
+              size: 16,
+              color: c.accentText,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Quiet three-stat strip: yearly projection, daily cost, average per sub.
+class _StatRow extends StatelessWidget {
+  const _StatRow({required this.stats});
+
+  final DashboardStats stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final currency = stats.displayCurrency;
+    final perDay = stats.totalMonthlySpend * 12 / 365;
+    final average = stats.activeCount > 0
+        ? stats.totalMonthlySpend / stats.activeCount
+        : 0.0;
+
+    return Row(
+      children: [
+        Expanded(
+          child: _Stat(
+            label: 'Per year',
+            value: CurrencyUtils.formatGrouped(
+              stats.totalYearlySpend,
+              currency,
+              decimals: 0,
+            ),
+            alignment: CrossAxisAlignment.start,
+          ),
+        ),
+        Expanded(
+          child: _Stat(
+            label: 'Per day',
+            value: CurrencyUtils.formatGrouped(perDay, currency),
+            alignment: CrossAxisAlignment.center,
+          ),
+        ),
+        Expanded(
+          child: _Stat(
+            label: 'Avg / sub',
+            value: CurrencyUtils.formatGrouped(average, currency),
+            alignment: CrossAxisAlignment.end,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Stat extends StatelessWidget {
+  const _Stat({
+    required this.label,
+    required this.value,
+    required this.alignment,
+  });
+
+  final String label;
+  final String value;
+  final CrossAxisAlignment alignment;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.ledgerText;
+    return Column(
+      crossAxisAlignment: alignment,
+      children: [
+        Text(label, style: t.caption),
+        const SizedBox(height: 3),
+        Text(value, style: t.rowAmount),
+      ],
     );
   }
 }
@@ -105,6 +283,7 @@ class _HomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -114,7 +293,7 @@ class _HomeHeader extends StatelessWidget {
               width: 26,
               height: 26,
               decoration: BoxDecoration(
-                color: AppColors.accent,
+                color: c.accent,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Center(
@@ -129,7 +308,7 @@ class _HomeHeader extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 9),
-            Text('Subly', style: AppTypography.wordmark),
+            Text('Subly', style: context.ledgerText.wordmark),
           ],
         ),
         GestureDetector(
@@ -140,14 +319,14 @@ class _HomeHeader extends StatelessWidget {
           child: Container(
             width: 34,
             height: 34,
-            decoration: const BoxDecoration(
-              color: AppColors.toggleOff,
+            decoration: BoxDecoration(
+              color: c.toggleOff,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               CupertinoIcons.person_fill,
               size: 18,
-              color: AppColors.muted,
+              color: c.muted,
             ),
           ),
         ),
@@ -169,6 +348,8 @@ class _DeltaRow extends ConsumerWidget {
     final active = ref.watch(activeSubscriptionsProvider).valueOrNull ?? [];
     final cancelled =
         ref.watch(cancelledSubscriptionsProvider).valueOrNull ?? [];
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
 
     final now = DateTime.now();
     bool inThisMonth(DateTime? d) =>
@@ -176,7 +357,7 @@ class _DeltaRow extends ConsumerWidget {
 
     final added = active
         .where((s) => inThisMonth(s.startDate))
-        .fold<double>(0, (sum, s) => sum + s.monthlyCostIn(currency));
+        .fold<double>(0, (sum, s) => sum + s.billableMonthlyCostIn(currency));
     final removed = cancelled
         .where((s) => inThisMonth(s.cancelledDate))
         .fold<double>(0, (sum, s) => sum + s.monthlyCostIn(currency));
@@ -190,14 +371,14 @@ class _DeltaRow extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
             decoration: BoxDecoration(
-              color: AppColors.accentSoft,
+              color: c.accentSoft,
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
               '${delta > 0 ? '↑' : '↓'} '
               '${CurrencyUtils.formatGrouped(delta.abs(), currency)}',
-              style: AppTypography.caption.copyWith(
-                color: AppColors.accent,
+              style: t.caption.copyWith(
+                color: c.accentText,
                 fontWeight: FontWeight.w600,
                 fontFeatures: AppTypography.tabularFigures,
               ),
@@ -209,8 +390,94 @@ class _DeltaRow extends ConsumerWidget {
           delta.abs() >= 0.01
               ? 'vs. $prevMonth · $activeCount active'
               : '$activeCount active',
-          style: AppTypography.captionLarge,
+          style: t.captionLarge,
         ),
+      ],
+    );
+  }
+}
+
+/// Progress against the monthly budget from Settings. Fills in accent and
+/// switches to the danger color once spending exceeds the budget.
+class _BudgetBar extends StatelessWidget {
+  const _BudgetBar({
+    required this.spent,
+    required this.budget,
+    required this.currency,
+  });
+
+  final double spent;
+  final double budget;
+  final String currency;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
+    final over = spent > budget;
+    final fraction = budget > 0 ? (spent / budget).clamp(0.0, 1.0) : 1.0;
+    final fillPerMille = (fraction * 1000).round().clamp(1, 1000);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Budget', style: t.caption),
+            Text.rich(
+              TextSpan(
+                style: t.caption.copyWith(
+                  fontFeatures: AppTypography.tabularFigures,
+                ),
+                children: [
+                  TextSpan(
+                    text: CurrencyUtils.formatGrouped(spent, currency),
+                    style: t.caption.copyWith(
+                      color: over ? c.danger : c.ink,
+                      fontWeight: FontWeight.w600,
+                      fontFeatures: AppTypography.tabularFigures,
+                    ),
+                  ),
+                  TextSpan(
+                    text:
+                        ' of ${CurrencyUtils.formatGrouped(budget, currency)}',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 7),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: SizedBox(
+            height: 8,
+            child: Row(
+              children: [
+                Expanded(
+                  flex: fillPerMille,
+                  child: Container(color: over ? c.danger : c.accent),
+                ),
+                if (fillPerMille < 1000)
+                  Expanded(
+                    flex: 1000 - fillPerMille,
+                    child: Container(color: c.barTrack2),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        if (over) ...[
+          const SizedBox(height: 6),
+          Text(
+            '${CurrencyUtils.formatGrouped(spent - budget, currency)} over budget',
+            style: t.caption.copyWith(
+              color: c.danger,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -224,6 +491,7 @@ class _CategoryBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.ledgerText;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -259,7 +527,7 @@ class _CategoryBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 5),
-              Text(buckets[i].label, style: AppTypography.caption),
+              Text(buckets[i].label, style: t.caption),
             ],
           ],
         ),
@@ -276,6 +544,8 @@ class _UpcomingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
     return InkWell(
       onTap: () {
         HapticFeedback.selectionClick();
@@ -297,11 +567,15 @@ class _UpcomingRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(subscription.name, style: AppTypography.rowTitle),
+                  Text(subscription.name, style: t.rowTitle),
                   const SizedBox(height: 2),
                   Text(
-                    'Renews ${DateFormat('MMM d').format(subscription.nextBillingDate)}',
-                    style: AppTypography.caption,
+                    subscription.isInTrial
+                        ? 'Trial ends ${DateFormat('MMM d').format(subscription.nextBillingDate)}'
+                        : 'Renews ${DateFormat('MMM d').format(subscription.nextBillingDate)}',
+                    style: t.caption.copyWith(
+                      color: subscription.isInTrial ? c.accentText : c.muted,
+                    ),
                   ),
                 ],
               ),
@@ -311,7 +585,7 @@ class _UpcomingRow extends StatelessWidget {
                 subscription.priceIn(currency),
                 currency,
               ),
-              style: AppTypography.rowAmount,
+              style: t.rowAmount,
             ),
           ],
         ),
@@ -327,16 +601,18 @@ class _EmptyHome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
     return Padding(
       padding: const EdgeInsets.only(top: 48),
       child: Center(
         child: Column(
           children: [
-            Text('No subscriptions yet', style: AppTypography.sectionHeader),
+            Text('No subscriptions yet', style: t.sectionHeader),
             const SizedBox(height: 6),
             Text(
               'Add your first subscription to start tracking.',
-              style: AppTypography.captionLarge,
+              style: t.captionLarge,
             ),
             const SizedBox(height: 20),
             GestureDetector(
@@ -347,10 +623,10 @@ class _EmptyHome extends StatelessWidget {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.accent,
+                  color: c.accent,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Text('Add subscription', style: AppTypography.button),
+                child: Text('Add subscription', style: t.button),
               ),
             ),
           ],

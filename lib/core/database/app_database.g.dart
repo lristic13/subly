@@ -144,6 +144,17 @@ class $SubscriptionsTableTable extends SubscriptionsTable
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _trialEndDateMeta = const VerificationMeta(
+    'trialEndDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> trialEndDate = GeneratedColumn<DateTime>(
+    'trial_end_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isActiveMeta = const VerificationMeta(
     'isActive',
   );
@@ -209,6 +220,7 @@ class $SubscriptionsTableTable extends SubscriptionsTable
     domain,
     brandColor,
     catalogItemId,
+    trialEndDate,
     isActive,
     cancelledDate,
     createdAt,
@@ -304,6 +316,15 @@ class $SubscriptionsTableTable extends SubscriptionsTable
         ),
       );
     }
+    if (data.containsKey('trial_end_date')) {
+      context.handle(
+        _trialEndDateMeta,
+        trialEndDate.isAcceptableOrUnknown(
+          data['trial_end_date']!,
+          _trialEndDateMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_active')) {
       context.handle(
         _isActiveMeta,
@@ -392,6 +413,10 @@ class $SubscriptionsTableTable extends SubscriptionsTable
         DriftSqlType.string,
         data['${effectivePrefix}catalog_item_id'],
       ),
+      trialEndDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}trial_end_date'],
+      ),
       isActive: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_active'],
@@ -464,6 +489,11 @@ class SubscriptionsTableData extends DataClass
   /// Reference to catalog item if created from catalog
   final String? catalogItemId;
 
+  /// End of the free trial period; null when the subscription has no trial.
+  /// Until this date the subscription costs nothing; the first charge is
+  /// expected at trial end.
+  final DateTime? trialEndDate;
+
   /// Whether the subscription is currently active
   final bool isActive;
 
@@ -488,6 +518,7 @@ class SubscriptionsTableData extends DataClass
     this.domain,
     this.brandColor,
     this.catalogItemId,
+    this.trialEndDate,
     required this.isActive,
     this.cancelledDate,
     required this.createdAt,
@@ -524,6 +555,9 @@ class SubscriptionsTableData extends DataClass
     if (!nullToAbsent || catalogItemId != null) {
       map['catalog_item_id'] = Variable<String>(catalogItemId);
     }
+    if (!nullToAbsent || trialEndDate != null) {
+      map['trial_end_date'] = Variable<DateTime>(trialEndDate);
+    }
     map['is_active'] = Variable<bool>(isActive);
     if (!nullToAbsent || cancelledDate != null) {
       map['cancelled_date'] = Variable<DateTime>(cancelledDate);
@@ -555,6 +589,9 @@ class SubscriptionsTableData extends DataClass
       catalogItemId: catalogItemId == null && nullToAbsent
           ? const Value.absent()
           : Value(catalogItemId),
+      trialEndDate: trialEndDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(trialEndDate),
       isActive: Value(isActive),
       cancelledDate: cancelledDate == null && nullToAbsent
           ? const Value.absent()
@@ -586,6 +623,7 @@ class SubscriptionsTableData extends DataClass
       domain: serializer.fromJson<String?>(json['domain']),
       brandColor: serializer.fromJson<String?>(json['brandColor']),
       catalogItemId: serializer.fromJson<String?>(json['catalogItemId']),
+      trialEndDate: serializer.fromJson<DateTime?>(json['trialEndDate']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       cancelledDate: serializer.fromJson<DateTime?>(json['cancelledDate']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -612,6 +650,7 @@ class SubscriptionsTableData extends DataClass
       'domain': serializer.toJson<String?>(domain),
       'brandColor': serializer.toJson<String?>(brandColor),
       'catalogItemId': serializer.toJson<String?>(catalogItemId),
+      'trialEndDate': serializer.toJson<DateTime?>(trialEndDate),
       'isActive': serializer.toJson<bool>(isActive),
       'cancelledDate': serializer.toJson<DateTime?>(cancelledDate),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -632,6 +671,7 @@ class SubscriptionsTableData extends DataClass
     Value<String?> domain = const Value.absent(),
     Value<String?> brandColor = const Value.absent(),
     Value<String?> catalogItemId = const Value.absent(),
+    Value<DateTime?> trialEndDate = const Value.absent(),
     bool? isActive,
     Value<DateTime?> cancelledDate = const Value.absent(),
     DateTime? createdAt,
@@ -651,6 +691,7 @@ class SubscriptionsTableData extends DataClass
     catalogItemId: catalogItemId.present
         ? catalogItemId.value
         : this.catalogItemId,
+    trialEndDate: trialEndDate.present ? trialEndDate.value : this.trialEndDate,
     isActive: isActive ?? this.isActive,
     cancelledDate: cancelledDate.present
         ? cancelledDate.value
@@ -682,6 +723,9 @@ class SubscriptionsTableData extends DataClass
       catalogItemId: data.catalogItemId.present
           ? data.catalogItemId.value
           : this.catalogItemId,
+      trialEndDate: data.trialEndDate.present
+          ? data.trialEndDate.value
+          : this.trialEndDate,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       cancelledDate: data.cancelledDate.present
           ? data.cancelledDate.value
@@ -706,6 +750,7 @@ class SubscriptionsTableData extends DataClass
           ..write('domain: $domain, ')
           ..write('brandColor: $brandColor, ')
           ..write('catalogItemId: $catalogItemId, ')
+          ..write('trialEndDate: $trialEndDate, ')
           ..write('isActive: $isActive, ')
           ..write('cancelledDate: $cancelledDate, ')
           ..write('createdAt: $createdAt, ')
@@ -728,6 +773,7 @@ class SubscriptionsTableData extends DataClass
     domain,
     brandColor,
     catalogItemId,
+    trialEndDate,
     isActive,
     cancelledDate,
     createdAt,
@@ -749,6 +795,7 @@ class SubscriptionsTableData extends DataClass
           other.domain == this.domain &&
           other.brandColor == this.brandColor &&
           other.catalogItemId == this.catalogItemId &&
+          other.trialEndDate == this.trialEndDate &&
           other.isActive == this.isActive &&
           other.cancelledDate == this.cancelledDate &&
           other.createdAt == this.createdAt &&
@@ -769,6 +816,7 @@ class SubscriptionsTableCompanion
   final Value<String?> domain;
   final Value<String?> brandColor;
   final Value<String?> catalogItemId;
+  final Value<DateTime?> trialEndDate;
   final Value<bool> isActive;
   final Value<DateTime?> cancelledDate;
   final Value<DateTime> createdAt;
@@ -787,6 +835,7 @@ class SubscriptionsTableCompanion
     this.domain = const Value.absent(),
     this.brandColor = const Value.absent(),
     this.catalogItemId = const Value.absent(),
+    this.trialEndDate = const Value.absent(),
     this.isActive = const Value.absent(),
     this.cancelledDate = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -806,6 +855,7 @@ class SubscriptionsTableCompanion
     this.domain = const Value.absent(),
     this.brandColor = const Value.absent(),
     this.catalogItemId = const Value.absent(),
+    this.trialEndDate = const Value.absent(),
     this.isActive = const Value.absent(),
     this.cancelledDate = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -832,6 +882,7 @@ class SubscriptionsTableCompanion
     Expression<String>? domain,
     Expression<String>? brandColor,
     Expression<String>? catalogItemId,
+    Expression<DateTime>? trialEndDate,
     Expression<bool>? isActive,
     Expression<DateTime>? cancelledDate,
     Expression<DateTime>? createdAt,
@@ -851,6 +902,7 @@ class SubscriptionsTableCompanion
       if (domain != null) 'domain': domain,
       if (brandColor != null) 'brand_color': brandColor,
       if (catalogItemId != null) 'catalog_item_id': catalogItemId,
+      if (trialEndDate != null) 'trial_end_date': trialEndDate,
       if (isActive != null) 'is_active': isActive,
       if (cancelledDate != null) 'cancelled_date': cancelledDate,
       if (createdAt != null) 'created_at': createdAt,
@@ -872,6 +924,7 @@ class SubscriptionsTableCompanion
     Value<String?>? domain,
     Value<String?>? brandColor,
     Value<String?>? catalogItemId,
+    Value<DateTime?>? trialEndDate,
     Value<bool>? isActive,
     Value<DateTime?>? cancelledDate,
     Value<DateTime>? createdAt,
@@ -891,6 +944,7 @@ class SubscriptionsTableCompanion
       domain: domain ?? this.domain,
       brandColor: brandColor ?? this.brandColor,
       catalogItemId: catalogItemId ?? this.catalogItemId,
+      trialEndDate: trialEndDate ?? this.trialEndDate,
       isActive: isActive ?? this.isActive,
       cancelledDate: cancelledDate ?? this.cancelledDate,
       createdAt: createdAt ?? this.createdAt,
@@ -944,6 +998,9 @@ class SubscriptionsTableCompanion
     if (catalogItemId.present) {
       map['catalog_item_id'] = Variable<String>(catalogItemId.value);
     }
+    if (trialEndDate.present) {
+      map['trial_end_date'] = Variable<DateTime>(trialEndDate.value);
+    }
     if (isActive.present) {
       map['is_active'] = Variable<bool>(isActive.value);
     }
@@ -977,6 +1034,7 @@ class SubscriptionsTableCompanion
           ..write('domain: $domain, ')
           ..write('brandColor: $brandColor, ')
           ..write('catalogItemId: $catalogItemId, ')
+          ..write('trialEndDate: $trialEndDate, ')
           ..write('isActive: $isActive, ')
           ..write('cancelledDate: $cancelledDate, ')
           ..write('createdAt: $createdAt, ')
@@ -1016,6 +1074,7 @@ typedef $$SubscriptionsTableTableCreateCompanionBuilder =
       Value<String?> domain,
       Value<String?> brandColor,
       Value<String?> catalogItemId,
+      Value<DateTime?> trialEndDate,
       Value<bool> isActive,
       Value<DateTime?> cancelledDate,
       Value<DateTime> createdAt,
@@ -1036,6 +1095,7 @@ typedef $$SubscriptionsTableTableUpdateCompanionBuilder =
       Value<String?> domain,
       Value<String?> brandColor,
       Value<String?> catalogItemId,
+      Value<DateTime?> trialEndDate,
       Value<bool> isActive,
       Value<DateTime?> cancelledDate,
       Value<DateTime> createdAt,
@@ -1115,6 +1175,11 @@ class $$SubscriptionsTableTableFilterComposer
 
   ColumnFilters<String> get catalogItemId => $composableBuilder(
     column: $table.catalogItemId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get trialEndDate => $composableBuilder(
+    column: $table.trialEndDate,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1208,6 +1273,11 @@ class $$SubscriptionsTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get trialEndDate => $composableBuilder(
+    column: $table.trialEndDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isActive => $composableBuilder(
     column: $table.isActive,
     builder: (column) => ColumnOrderings(column),
@@ -1285,6 +1355,11 @@ class $$SubscriptionsTableTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<DateTime> get trialEndDate => $composableBuilder(
+    column: $table.trialEndDate,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get isActive =>
       $composableBuilder(column: $table.isActive, builder: (column) => column);
 
@@ -1352,6 +1427,7 @@ class $$SubscriptionsTableTableTableManager
                 Value<String?> domain = const Value.absent(),
                 Value<String?> brandColor = const Value.absent(),
                 Value<String?> catalogItemId = const Value.absent(),
+                Value<DateTime?> trialEndDate = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<DateTime?> cancelledDate = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -1370,6 +1446,7 @@ class $$SubscriptionsTableTableTableManager
                 domain: domain,
                 brandColor: brandColor,
                 catalogItemId: catalogItemId,
+                trialEndDate: trialEndDate,
                 isActive: isActive,
                 cancelledDate: cancelledDate,
                 createdAt: createdAt,
@@ -1390,6 +1467,7 @@ class $$SubscriptionsTableTableTableManager
                 Value<String?> domain = const Value.absent(),
                 Value<String?> brandColor = const Value.absent(),
                 Value<String?> catalogItemId = const Value.absent(),
+                Value<DateTime?> trialEndDate = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<DateTime?> cancelledDate = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -1408,6 +1486,7 @@ class $$SubscriptionsTableTableTableManager
                 domain: domain,
                 brandColor: brandColor,
                 catalogItemId: catalogItemId,
+                trialEndDate: trialEndDate,
                 isActive: isActive,
                 cancelledDate: cancelledDate,
                 createdAt: createdAt,

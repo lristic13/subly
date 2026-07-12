@@ -57,6 +57,11 @@ mixin _$Subscription {
   /// Reference to catalog item if created from catalog
   String? get catalogItemId => throw _privateConstructorUsedError;
 
+  /// End of the free trial period; null when there is no trial.
+  /// The subscription costs nothing until this date — the first charge
+  /// is expected when the trial ends.
+  DateTime? get trialEndDate => throw _privateConstructorUsedError;
+
   /// Whether the subscription is currently active
   bool get isActive => throw _privateConstructorUsedError;
 
@@ -99,6 +104,7 @@ abstract class $SubscriptionCopyWith<$Res> {
     String? domain,
     String? brandColor,
     String? catalogItemId,
+    DateTime? trialEndDate,
     bool isActive,
     DateTime? cancelledDate,
     DateTime? createdAt,
@@ -133,6 +139,7 @@ class _$SubscriptionCopyWithImpl<$Res, $Val extends Subscription>
     Object? domain = freezed,
     Object? brandColor = freezed,
     Object? catalogItemId = freezed,
+    Object? trialEndDate = freezed,
     Object? isActive = null,
     Object? cancelledDate = freezed,
     Object? createdAt = freezed,
@@ -188,6 +195,10 @@ class _$SubscriptionCopyWithImpl<$Res, $Val extends Subscription>
                 ? _value.catalogItemId
                 : catalogItemId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            trialEndDate: freezed == trialEndDate
+                ? _value.trialEndDate
+                : trialEndDate // ignore: cast_nullable_to_non_nullable
+                      as DateTime?,
             isActive: null == isActive
                 ? _value.isActive
                 : isActive // ignore: cast_nullable_to_non_nullable
@@ -232,6 +243,7 @@ abstract class _$$SubscriptionImplCopyWith<$Res>
     String? domain,
     String? brandColor,
     String? catalogItemId,
+    DateTime? trialEndDate,
     bool isActive,
     DateTime? cancelledDate,
     DateTime? createdAt,
@@ -265,6 +277,7 @@ class __$$SubscriptionImplCopyWithImpl<$Res>
     Object? domain = freezed,
     Object? brandColor = freezed,
     Object? catalogItemId = freezed,
+    Object? trialEndDate = freezed,
     Object? isActive = null,
     Object? cancelledDate = freezed,
     Object? createdAt = freezed,
@@ -320,6 +333,10 @@ class __$$SubscriptionImplCopyWithImpl<$Res>
             ? _value.catalogItemId
             : catalogItemId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        trialEndDate: freezed == trialEndDate
+            ? _value.trialEndDate
+            : trialEndDate // ignore: cast_nullable_to_non_nullable
+                  as DateTime?,
         isActive: null == isActive
             ? _value.isActive
             : isActive // ignore: cast_nullable_to_non_nullable
@@ -357,6 +374,7 @@ class _$SubscriptionImpl extends _Subscription {
     this.domain,
     this.brandColor,
     this.catalogItemId,
+    this.trialEndDate,
     this.isActive = true,
     this.cancelledDate,
     this.createdAt,
@@ -414,6 +432,12 @@ class _$SubscriptionImpl extends _Subscription {
   @override
   final String? catalogItemId;
 
+  /// End of the free trial period; null when there is no trial.
+  /// The subscription costs nothing until this date — the first charge
+  /// is expected when the trial ends.
+  @override
+  final DateTime? trialEndDate;
+
   /// Whether the subscription is currently active
   @override
   @JsonKey()
@@ -433,7 +457,7 @@ class _$SubscriptionImpl extends _Subscription {
 
   @override
   String toString() {
-    return 'Subscription(id: $id, name: $name, price: $price, currency: $currency, billingCycle: $billingCycle, category: $category, startDate: $startDate, nextBillingDate: $nextBillingDate, description: $description, domain: $domain, brandColor: $brandColor, catalogItemId: $catalogItemId, isActive: $isActive, cancelledDate: $cancelledDate, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Subscription(id: $id, name: $name, price: $price, currency: $currency, billingCycle: $billingCycle, category: $category, startDate: $startDate, nextBillingDate: $nextBillingDate, description: $description, domain: $domain, brandColor: $brandColor, catalogItemId: $catalogItemId, trialEndDate: $trialEndDate, isActive: $isActive, cancelledDate: $cancelledDate, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -461,6 +485,8 @@ class _$SubscriptionImpl extends _Subscription {
                 other.brandColor == brandColor) &&
             (identical(other.catalogItemId, catalogItemId) ||
                 other.catalogItemId == catalogItemId) &&
+            (identical(other.trialEndDate, trialEndDate) ||
+                other.trialEndDate == trialEndDate) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
             (identical(other.cancelledDate, cancelledDate) ||
@@ -487,6 +513,7 @@ class _$SubscriptionImpl extends _Subscription {
     domain,
     brandColor,
     catalogItemId,
+    trialEndDate,
     isActive,
     cancelledDate,
     createdAt,
@@ -521,6 +548,7 @@ abstract class _Subscription extends Subscription {
     final String? domain,
     final String? brandColor,
     final String? catalogItemId,
+    final DateTime? trialEndDate,
     final bool isActive,
     final DateTime? cancelledDate,
     final DateTime? createdAt,
@@ -578,6 +606,12 @@ abstract class _Subscription extends Subscription {
   /// Reference to catalog item if created from catalog
   @override
   String? get catalogItemId;
+
+  /// End of the free trial period; null when there is no trial.
+  /// The subscription costs nothing until this date — the first charge
+  /// is expected when the trial ends.
+  @override
+  DateTime? get trialEndDate;
 
   /// Whether the subscription is currently active
   @override

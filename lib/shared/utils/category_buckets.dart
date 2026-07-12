@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../app/theme/app_colors.dart';
 import '../../features/subscriptions/domain/models/subscription_category.dart';
 
 /// A slice of the spend breakdown rendered with the accent shades
@@ -21,9 +20,10 @@ class CategoryBucket {
 
 /// Collapses per-category spend into at most four buckets: the top three
 /// categories by amount plus an aggregated "Other", colored with the four
-/// accent shades in descending order.
+/// [shades] (accent shades of the active palette) in descending order.
 List<CategoryBucket> buildCategoryBuckets(
   Map<SubscriptionCategory, double> spendByCategory,
+  List<Color> shades,
 ) {
   final total = spendByCategory.values.fold<double>(0, (a, b) => a + b);
   if (total <= 0) return const [];
@@ -39,7 +39,7 @@ List<CategoryBucket> buildCategoryBuckets(
         label: entries[i].key.displayName,
         amount: entries[i].value,
         fraction: entries[i].value / total,
-        color: AppColors.chartShades[i],
+        color: shades[i],
       ));
     } else {
       otherAmount += entries[i].value;
@@ -50,7 +50,7 @@ List<CategoryBucket> buildCategoryBuckets(
       label: 'Other',
       amount: otherAmount,
       fraction: otherAmount / total,
-      color: AppColors.chartShades[3],
+      color: shades[3],
     ));
   }
   return buckets;
