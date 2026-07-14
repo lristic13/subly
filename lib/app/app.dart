@@ -40,6 +40,12 @@ class SublyApp extends ConsumerWidget {
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
       routerConfig: router,
+      // Tap anywhere outside a field to dismiss the keyboard.
+      builder: (context, child) => GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        behavior: HitTestBehavior.translucent,
+        child: child,
+      ),
     );
   }
 }

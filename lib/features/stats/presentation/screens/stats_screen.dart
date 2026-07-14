@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -6,17 +7,54 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_typography.dart';
 import '../../../../core/utils/currency_utils.dart';
 import '../../../../shared/utils/category_buckets.dart';
+import '../../../../shared/widgets/ledger/ledger_widgets.dart';
 import '../../../settings/providers/settings_providers.dart';
 import '../../../subscriptions/domain/models/subscription.dart';
 import '../../../subscriptions/domain/models/subscription_category.dart';
 import '../../../subscriptions/providers/subscriptions_providers.dart';
 
-/// Insights — spending trends and breakdowns.
-class StatsScreen extends ConsumerWidget {
+/// Monthly total reconstructed from each subscription's start, trial,
+/// and cancellation dates.
+double _totalForMonth(
+  DateTime month,
+  List<Subscription> subscriptions,
+  String currency,
+) {
+  final endOfMonth = DateTime(month.year, month.month + 1, 0);
+  final startOfMonth = DateTime(month.year, month.month);
+  double total = 0;
+  for (final sub in subscriptions) {
+    final startedBy = !sub.startDate.isAfter(endOfMonth);
+    final stillRunning = sub.isActive ||
+        sub.cancelledDate == null ||
+        !sub.cancelledDate!.isBefore(startOfMonth);
+    // A month inside the free trial costs nothing.
+    final pastTrial =
+        sub.trialEndDate == null || !sub.trialEndDate!.isAfter(endOfMonth);
+    if (startedBy && stillRunning && pastTrial) {
+      total += sub.monthlyCostIn(currency);
+    }
+  }
+  return total;
+}
+
+bool _inMonth(DateTime? date, DateTime month) =>
+    date != null && date.year == month.year && date.month == month.month;
+
+/// Insights — spending trends and breakdowns, browsable by month.
+class StatsScreen extends ConsumerStatefulWidget {
   const StatsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StatsScreen> createState() => _StatsScreenState();
+}
+
+class _StatsScreenState extends ConsumerState<StatsScreen> {
+  /// Index into the 7-month window (0 = oldest, 6 = current month).
+  int _selectedIndex = 6;
+
+  @override
+  Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     final currency = settings.valueOrNull?.currency ?? 'EUR';
     final activeAsync = ref.watch(activeSubscriptionsProvider);
@@ -45,6 +83,12 @@ class StatsScreen extends ConsumerWidget {
               }
             }
             final buckets = buildCategoryBuckets(byCategory, c.chartShades);
+
+            final now = DateTime.now();
+            final months = [
+              for (var i = 6; i >= 0; i--) DateTime(now.year, now.month - i),
+            ];
+            final everything = [...active, ...cancelled];
 
             return SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(24, 18, 24, 40),
@@ -83,10 +127,32 @@ class StatsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 28),
                   Text('Monthly spend', style: t.sectionHeader),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Tap a month to see what changed.',
+                    style: t.caption,
+                  ),
                   const SizedBox(height: 16),
                   _MonthlyChart(
-                    active: active,
-                    cancelled: cancelled,
+                    months: months,
+                    subscriptions: everything,
+                    currency: currency,
+                    selectedIndex: _selectedIndex,
+                    onSelect: (index) {
+                      HapticFeedback.selectionClick();
+                      setState(() => _selectedIndex = index);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _MonthDetailCard(
+                    month: months[_selectedIndex],
+                    previousMonth: _selectedIndex > 0
+                        ? months[_selectedIndex - 1]
+                        : DateTime(
+                            months.first.year,
+                            months.first.month - 1,
+                          ),
+                    subscriptions: everything,
                     currency: currency,
                   ),
                   const SizedBox(height: 28),
@@ -168,47 +234,29 @@ class _ProjectionHero extends StatelessWidget {
   }
 }
 
-/// 7-bar chart of the last seven months. Totals are reconstructed from each
-/// subscription's start (and cancellation) dates.
+/// 7-bar chart of the last seven months; tapping a bar selects it.
 class _MonthlyChart extends StatelessWidget {
   const _MonthlyChart({
-    required this.active,
-    required this.cancelled,
+    required this.months,
+    required this.subscriptions,
     required this.currency,
+    required this.selectedIndex,
+    required this.onSelect,
   });
 
-  final List<Subscription> active;
-  final List<Subscription> cancelled;
+  final List<DateTime> months;
+  final List<Subscription> subscriptions;
   final String currency;
-
-  double _totalForMonth(DateTime month) {
-    final endOfMonth = DateTime(month.year, month.month + 1, 0);
-    final startOfMonth = DateTime(month.year, month.month);
-    double total = 0;
-    for (final sub in [...active, ...cancelled]) {
-      final startedBy = !sub.startDate.isAfter(endOfMonth);
-      final stillRunning = sub.isActive ||
-          sub.cancelledDate == null ||
-          !sub.cancelledDate!.isBefore(startOfMonth);
-      // A month inside the free trial costs nothing.
-      final pastTrial =
-          sub.trialEndDate == null || !sub.trialEndDate!.isAfter(endOfMonth);
-      if (startedBy && stillRunning && pastTrial) {
-        total += sub.monthlyCostIn(currency);
-      }
-    }
-    return total;
-  }
+  final int selectedIndex;
+  final ValueChanged<int> onSelect;
 
   @override
   Widget build(BuildContext context) {
     final c = context.ledgerColors;
     final t = context.ledgerText;
-    final now = DateTime.now();
-    final months = [
-      for (var i = 6; i >= 0; i--) DateTime(now.year, now.month - i),
+    final totals = [
+      for (final m in months) _totalForMonth(m, subscriptions, currency),
     ];
-    final totals = [for (final m in months) _totalForMonth(m)];
     final maxTotal = totals.fold<double>(0, (a, b) => a > b ? a : b);
 
     return Column(
@@ -221,14 +269,21 @@ class _MonthlyChart extends StatelessWidget {
               for (var i = 0; i < months.length; i++) ...[
                 if (i > 0) const SizedBox(width: 6),
                 Expanded(
-                  child: Container(
-                    height: maxTotal > 0
-                        ? (totals[i] / maxTotal * 88).clamp(6.0, 88.0)
-                        : 6,
-                    decoration: BoxDecoration(
-                      color:
-                          i == months.length - 1 ? c.accent : c.barTrack,
-                      borderRadius: BorderRadius.circular(4),
+                  child: GestureDetector(
+                    onTap: () => onSelect(i),
+                    behavior: HitTestBehavior.opaque,
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        width: double.infinity,
+                        height: maxTotal > 0
+                            ? (totals[i] / maxTotal * 88).clamp(6.0, 88.0)
+                            : 6,
+                        decoration: BoxDecoration(
+                          color: i == selectedIndex ? c.accent : c.barTrack,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -242,15 +297,19 @@ class _MonthlyChart extends StatelessWidget {
             for (var i = 0; i < months.length; i++) ...[
               if (i > 0) const SizedBox(width: 6),
               Expanded(
-                child: Text(
-                  DateFormat('MMMMM').format(months[i]),
-                  textAlign: TextAlign.center,
-                  style: t.caption.copyWith(
-                    fontSize: 11,
-                    color: i == months.length - 1 ? c.accentText : c.muted,
-                    fontWeight: i == months.length - 1
-                        ? FontWeight.w600
-                        : FontWeight.w400,
+                child: GestureDetector(
+                  onTap: () => onSelect(i),
+                  behavior: HitTestBehavior.opaque,
+                  child: Text(
+                    DateFormat('MMMMM').format(months[i]),
+                    textAlign: TextAlign.center,
+                    style: t.caption.copyWith(
+                      fontSize: 11,
+                      color: i == selectedIndex ? c.accentText : c.muted,
+                      fontWeight: i == selectedIndex
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                    ),
                   ),
                 ),
               ),
@@ -258,6 +317,181 @@ class _MonthlyChart extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Breakdown of the selected month: total, delta vs the previous month,
+/// and the subscription changes that happened in it.
+class _MonthDetailCard extends StatelessWidget {
+  const _MonthDetailCard({
+    required this.month,
+    required this.previousMonth,
+    required this.subscriptions,
+    required this.currency,
+  });
+
+  final DateTime month;
+  final DateTime previousMonth;
+  final List<Subscription> subscriptions;
+  final String currency;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.ledgerColors;
+    final t = context.ledgerText;
+
+    final total = _totalForMonth(month, subscriptions, currency);
+    final previousTotal =
+        _totalForMonth(previousMonth, subscriptions, currency);
+    final delta = total - previousTotal;
+
+    final started =
+        subscriptions.where((s) => _inMonth(s.startDate, month)).toList();
+    final canceled =
+        subscriptions.where((s) => _inMonth(s.cancelledDate, month)).toList();
+    final converted = subscriptions
+        .where((s) =>
+            _inMonth(s.trialEndDate, month) &&
+            s.startDate.isBefore(DateTime(month.year, month.month)) &&
+            !_inMonth(s.cancelledDate, month))
+        .toList();
+    final hasChanges =
+        started.isNotEmpty || canceled.isNotEmpty || converted.isNotEmpty;
+
+    return LedgerCard(
+      radius: 16,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                DateFormat('MMMM yyyy').format(month),
+                style: t.rowTitle,
+              ),
+              Text(
+                CurrencyUtils.formatGrouped(total, currency),
+                style: t.rowAmount.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+          const SizedBox(height: 3),
+          Text(
+            delta.abs() < 0.01
+                ? 'Same as ${DateFormat('MMMM').format(previousMonth)}'
+                : '${delta > 0 ? '+' : '−'}'
+                    '${CurrencyUtils.formatGrouped(delta.abs(), currency)} '
+                    'vs ${DateFormat('MMMM').format(previousMonth)}',
+            style: t.caption.copyWith(
+              color: delta > 0.01 ? c.danger : c.muted,
+            ),
+          ),
+          if (hasChanges) ...[
+            const SizedBox(height: 12),
+            Divider(color: c.hairline2, height: 1),
+            for (final sub in started)
+              _ChangeRow(
+                symbol: '+',
+                symbolColor: c.accentText,
+                name: sub.name,
+                // startDate is in this month; a trial ending later means the
+                // subscription began as a free trial here.
+                detail: sub.trialEndDate != null &&
+                        !_inMonth(sub.trialEndDate, month)
+                    ? 'trial started'
+                    : 'added',
+                amount: sub.monthlyCostIn(currency),
+                currency: currency,
+              ),
+            for (final sub in converted)
+              _ChangeRow(
+                symbol: '↑',
+                symbolColor: c.accentText,
+                name: sub.name,
+                detail: 'trial converted to paid',
+                amount: sub.monthlyCostIn(currency),
+                currency: currency,
+              ),
+            for (final sub in canceled)
+              _ChangeRow(
+                symbol: '−',
+                symbolColor: c.muted,
+                name: sub.name,
+                detail: 'canceled',
+                amount: -sub.monthlyCostIn(currency),
+                currency: currency,
+              ),
+          ] else ...[
+            const SizedBox(height: 10),
+            Text('No changes this month', style: t.caption),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ChangeRow extends StatelessWidget {
+  const _ChangeRow({
+    required this.symbol,
+    required this.symbolColor,
+    required this.name,
+    required this.detail,
+    required this.amount,
+    required this.currency,
+  });
+
+  final String symbol;
+  final Color symbolColor;
+  final String name;
+  final String detail;
+  final double amount;
+  final String currency;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.ledgerText;
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 16,
+            child: Text(
+              symbol,
+              style: t.rowTitle.copyWith(color: symbolColor),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                style: t.caption.copyWith(fontSize: 13),
+                children: [
+                  TextSpan(
+                    text: name,
+                    style: t.caption.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: context.ledgerColors.ink,
+                    ),
+                  ),
+                  TextSpan(text: ' · $detail'),
+                ],
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Text(
+            '${amount >= 0 ? '' : '−'}'
+            '${CurrencyUtils.formatGrouped(amount.abs(), currency)}',
+            style: t.rowAmount.copyWith(fontSize: 13),
+          ),
+        ],
+      ),
     );
   }
 }

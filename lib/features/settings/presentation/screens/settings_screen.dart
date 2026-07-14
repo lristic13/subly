@@ -318,7 +318,8 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
     if (result != null) {
-      final parsed = double.tryParse(result.trim());
+      // Accept both '.' and ',' decimals — EU keyboards only offer ','.
+      final parsed = double.tryParse(result.trim().replaceAll(',', '.'));
       await ref.read(settingsProvider.notifier).setMonthlyBudget(
             parsed != null && parsed > 0 ? parsed : null,
           );

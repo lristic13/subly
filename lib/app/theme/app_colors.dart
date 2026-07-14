@@ -30,6 +30,9 @@ class LedgerColors {
     required this.chevron,
     required this.danger,
     required this.footnote,
+    required this.chartTeal,
+    required this.chartAmber,
+    required this.chartOther,
   });
 
   final Color bg;
@@ -63,8 +66,13 @@ class LedgerColors {
   final Color danger;
   final Color footnote;
 
-  /// Accent shades for category charts (segmented bar, progress rows).
-  List<Color> get chartShades => [accent, accent300, accent200, accent100];
+  /// Distinct hues for the category charts (segmented bar, legend,
+  /// progress rows): indigo, teal, amber, then neutral for "Other".
+  final Color chartTeal;
+  final Color chartAmber;
+  final Color chartOther;
+
+  List<Color> get chartShades => [accent, chartTeal, chartAmber, chartOther];
 
   /// Avatar gradient (settings profile card).
   LinearGradient get avatarGradient => LinearGradient(
@@ -103,6 +111,9 @@ abstract final class AppColors {
     chevron: Color(0xFFC0C4CC),
     danger: Color(0xFFC4362F),
     footnote: Color(0xFFB0B5BE),
+    chartTeal: Color(0xFF0FA08B),
+    chartAmber: Color(0xFFE0A23F),
+    chartOther: Color(0xFF9AA0AB),
   );
 
   static const dark = LedgerColors(
@@ -131,6 +142,9 @@ abstract final class AppColors {
     chevron: Color(0xFF565B66),
     danger: Color(0xFFF06A63),
     footnote: Color(0xFF767C88), // not specced — reuses muted2
+    chartTeal: Color(0xFF3BC4AC),
+    chartAmber: Color(0xFFE8B45C),
+    chartOther: Color(0xFF767C88),
   );
 
   /// Resolve the palette for the ambient theme brightness.

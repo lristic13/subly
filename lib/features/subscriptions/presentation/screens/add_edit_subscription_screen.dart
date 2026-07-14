@@ -124,9 +124,12 @@ class _AddEditSubscriptionScreenState
     return next;
   }
 
-  bool get _isValid =>
-      _name.trim().isNotEmpty &&
-      (double.tryParse(_amountController.text) ?? 0) > 0;
+  /// Amount text parsed accepting both '.' and ',' as the decimal
+  /// separator — EU numeric keyboards only offer ','.
+  double? get _parsedAmount =>
+      double.tryParse(_amountController.text.replaceAll(',', '.'));
+
+  bool get _isValid => _name.trim().isNotEmpty && (_parsedAmount ?? 0) > 0;
 
   @override
   Widget build(BuildContext context) {
@@ -268,7 +271,7 @@ class _AddEditSubscriptionScreenState
                             ),
                             inputFormatters: [
                               FilteringTextInputFormatter.allow(
-                                RegExp(r'^\d*\.?\d{0,2}'),
+                                RegExp(r'^\d*[.,]?\d{0,2}'),
                               ),
                             ],
                             style: t.addAmount,
@@ -523,7 +526,7 @@ class _AddEditSubscriptionScreenState
         id: widget.subscriptionId ?? const Uuid().v4(),
         name: _name.trim(),
         // Round to whole cents so float noise never enters the database.
-        price: (double.parse(_amountController.text) * 100).round() / 100,
+        price: (_parsedAmount! * 100).round() / 100,
         currency: _currency,
         billingCycle: _billingCycle,
         category: _category,
